@@ -2,7 +2,6 @@
 
 {% block head %}
 <link rel="stylesheet" href="/static/css/home.css">
-<link rel="stylesheet" href="/static/css/music.css">
 {% endblock %}
 
 {% block content %}
@@ -67,7 +66,15 @@
                 <p class="track-album">{{ track.albums[0].title if track.albums else 'Неизвестный альбом' }}</p>
                 
                 <div class="track-meta">
-                    <span class="track-duration">{{ (track.duration_ms / 60000)|round(1) }} мин</span>
+                    <span class="track-duration">
+                        {% if track.duration_ms %}
+                            {{ (track.duration_ms / 60000)|round(1) }} мин
+                        {% elif track.duration %}
+                            {{ (track.duration / 60000)|round(1) }} мин
+                        {% else %}
+                            неизв.
+                        {% endif %}
+                    </span>
                 </div>
             </div>
             
