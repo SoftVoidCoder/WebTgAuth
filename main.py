@@ -18,7 +18,7 @@ app = FastAPI(title="Crypto Portfolio")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
-# Подключаем роутеры
+# Подключаем роутеры - ВАЖНО: ДОЛЖНО БЫТЬ ДО маршрутов!
 app.include_router(auth.router)
 app.include_router(users.router)
 

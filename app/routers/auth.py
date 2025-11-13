@@ -13,7 +13,7 @@ from app import crud
 
 load_dotenv()
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(prefix="/auth", tags=["auth"])  # ← prefix ВАЖЕН!
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
@@ -54,7 +54,6 @@ async def auth_telegram(
     
     try:
         verified_data = verify_telegram_auth(auth_data.copy())
-        # Используем get_or_create_user чтобы гарантировать создание
         db_user = crud.get_or_create_user(db, verified_data)
         
         response = RedirectResponse(url="/")
