@@ -13,7 +13,7 @@ from app import crud
 
 load_dotenv()
 
-router = APIRouter(prefix="/auth", tags=["auth"])  # ← prefix ВАЖЕН!
+router = APIRouter(prefix="/auth", tags=["auth"])  
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 

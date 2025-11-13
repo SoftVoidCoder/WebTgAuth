@@ -2,20 +2,17 @@
 .profile-container {
     background: rgba(255, 255, 255, 0.05);
     border-radius: 15px;
-    padding: 1.5rem;
-    margin: 1rem auto;
+    padding: 2rem;
+    margin: 2rem auto;
     max-width: 500px;
     border: 1px solid #2a2a2a;
-    width: 100%;
 }
 
 .profile-header {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-    flex-direction: column;
-    text-align: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
 }
 
 .profile-avatar {
@@ -28,17 +25,15 @@
 .profile-info h2 {
     color: #0088cc;
     margin-bottom: 0.5rem;
-    font-size: 1.3rem;
 }
 
 .profile-info p {
     color: #b0b0b0;
-    font-size: 0.9rem;
 }
 
 .profile-details {
     display: grid;
-    gap: 0.8rem;
+    gap: 1rem;
 }
 
 .detail-item {
@@ -46,7 +41,6 @@
     justify-content: space-between;
     padding: 0.5rem 0;
     border-bottom: 1px solid #2a2a2a;
-    font-size: 0.9rem;
 }
 
 .detail-item:last-child {
@@ -65,8 +59,6 @@
     text-decoration: none;
     display: inline-block;
     text-align: center;
-    width: 100%;
-    font-size: 0.9rem;
 }
 
 .logout-btn:hover {
@@ -76,36 +68,19 @@
 /* Медиа-запросы для профиля */
 @media (max-width: 768px) {
     .profile-container {
-        padding: 1rem;
-        margin: 0.5rem auto;
+        padding: 1.5rem;
+        margin: 1rem auto;
     }
     
     .profile-header {
-        gap: 0.8rem;
-    }
-    
-    .profile-avatar {
-        width: 70px;
-        height: 70px;
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
     }
     
     .detail-item {
         flex-direction: column;
         gap: 0.3rem;
         text-align: center;
-    }
-}
-
-@media (max-width: 480px) {
-    .profile-info h2 {
-        font-size: 1.1rem;
-    }
-    
-    .profile-info p {
-        font-size: 0.8rem;
-    }
-    
-    .detail-item {
-        font-size: 0.85rem;
     }
 }
