@@ -39,41 +39,22 @@
 </div>
 
 <script>
-// Популярные треки при загрузке
-const popularQueries = [
-    "lofi hip hop radio",
-    "chill music 2024", 
-    "pop hits 2024",
-    "rock classics",
-    "jazz relaxing music"
-];
-
 // Загрузка популярной музыки
 async function loadPopularMusic() {
     try {
         const container = document.getElementById('popularMusic');
         container.innerHTML = '<div class="loading">Загрузка популярной музыки...</div>';
         
-        // Ищем по популярным запросам
-        let allResults = [];
-        for (const query of popularQueries.slice(0, 2)) { // Берем первые 2 запроса
-            const response = await fetch(`/music/search?query=${encodeURIComponent(query)}`);
-            const data = await response.json();
-            allResults = allResults.concat(data.results.slice(0, 5)); // По 5 треков с каждого
-        }
+        const response = await fetch('/music/popular');
+        const data = await response.json();
         
-        // Убираем дубликаты
-        const uniqueResults = allResults.filter((track, index, self) =>
-            index === self.findIndex(t => t.id === track.id)
-        );
-        
-        if (uniqueResults.length === 0) {
+        if (data.results.length === 0) {
             container.innerHTML = '<div class="no-results">Не удалось загрузить музыку</div>';
             return;
         }
         
         let html = '';
-        uniqueResults.slice(0, 15).forEach(song => { // Максимум 15 треков
+        data.results.forEach(song => {
             html += createSongCard(song);
         });
         
@@ -120,8 +101,8 @@ async function searchMusic() {
 
 // Создание карточки трека
 function createSongCard(song) {
-    const safeTitle = song.title.replace(/'/g, "\\'").replace(/"/g, '\\"');
-    const safeArtist = song.artist.replace(/'/g, "\\'").replace(/"/g, '\\"');
+    const safeTitle = song.title.replace(/"/g, '\\"');
+    const safeArtist = song.artist.replace(/"/g, '\\"');
     
     return `
         <div class="song-card" onclick="playSong('${song.id}', '${safeArtist}', '${safeTitle}')">
@@ -136,7 +117,7 @@ function createSongCard(song) {
                 <p class="song-artist">${song.artist}</p>
                 <div class="song-meta">
                     <span class="duration">${formatDuration(song.duration)}</span>
-                    ${song.view_count ? `<span class="views">👁 ${formatViews(song.view_count)}</span>` : ''}
+                    <span class="preview-badge">30s preview</span>
                 </div>
             </div>
             <button class="play-btn">▶</button>
@@ -145,7 +126,7 @@ function createSongCard(song) {
 }
 
 // Воспроизведение музыки
-function playSong(videoId, artist, title) {
+function playSong(trackId, artist, title) {
     const audioPlayer = document.getElementById('audioPlayer');
     const audioElement = document.getElementById('audioElement');
     const nowPlaying = document.getElementById('nowPlaying');
@@ -153,11 +134,11 @@ function playSong(videoId, artist, title) {
     // Показываем плеер
     audioPlayer.style.display = 'block';
     
-    // Устанавливаем источник музыки
-    audioElement.src = `/music/stream/${videoId}`;
+    // Устанавливаем источник музыки (30-секундный превью)
+    audioElement.src = `/music/stream/${trackId}`;
     
     // Показываем что играет
-    nowPlaying.textContent = `Сейчас играет: ${artist} - ${title}`;
+    nowPlaying.textContent = `Сейчас играет: ${artist} - ${title} (30s preview)`;
     
     // Автовоспроизведение
     audioElement.play().catch(e => console.log('Autoplay blocked:', e));
@@ -169,16 +150,6 @@ function formatDuration(seconds) {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
-}
-
-// Форматирование просмотров
-function formatViews(views) {
-    if (views >= 1000000) {
-        return (views / 1000000).toFixed(1) + 'M';
-    } else if (views >= 1000) {
-        return (views / 1000).toFixed(1) + 'K';
-    }
-    return views;
 }
 
 // Поиск при нажатии Enter

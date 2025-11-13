@@ -1,54 +1,78 @@
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
-import yt_dlp
 import requests
 import asyncio
 from typing import List, Dict
 
 router = APIRouter(prefix="/music", tags=["music"])
 
-def search_youtube_music(query: str, limit: int = 20) -> List[Dict]:
-    """Ищет музыку на YouTube"""
+def search_deezer_music(query: str = "", limit: int = 25) -> List[Dict]:
+    """Ищет музыку в Deezer"""
     try:
-        ydl_opts = {
-            'format': 'bestaudio/best',
-            'quiet': True,
-            'no_warnings': True,
-            'extractaudio': True,
-            'audioformat': 'mp3', 
-            'noplaylist': True,
-            'default_search': f'ytsearch{limit}:'
+        url = "https://api.deezer.com/search"
+        params = {
+            'q': query,
+            'limit': limit
         }
         
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(query, download=False)
-            
-            results = []
-            entries = info['entries'] if 'entries' in info else [info]
-            
-            for entry in entries:
-                if entry:
-                    results.append({
-                        'id': entry['id'],
-                        'title': entry.get('title', 'Unknown'),
-                        'artist': entry.get('uploader', 'Unknown Artist'),
-                        'duration': entry.get('duration', 0),
-                        'thumbnail': entry.get('thumbnail'),
-                        'view_count': entry.get('view_count', 0)
-                    })
-            
-            return results[:limit]
-            
+        response = requests.get(url, params=params)
+        data = response.json()
+        
+        results = []
+        for track in data.get('data', []):
+            # Deezer дает 30-секундные превью бесплатно
+            if track.get('preview'):
+                results.append({
+                    'id': track['id'],
+                    'title': track.get('title', 'Unknown'),
+                    'artist': track['artist'].get('name', 'Unknown Artist'),
+                    'duration': track.get('duration', 0),
+                    'thumbnail': track['album'].get('cover_medium'),
+                    'preview_url': track.get('preview'),  # 30-секундный превью
+                    'full_url': track.get('link'),
+                    'album': track['album'].get('title', 'Unknown Album')
+                })
+        
+        return results
+        
     except Exception as e:
-        print(f"YouTube search error: {e}")
+        print(f"Deezer search error: {e}")
+        return []
+
+def get_deezer_popular() -> List[Dict]:
+    """Получает популярную музыку с Deezer"""
+    try:
+        # Чарт Deezer
+        url = "https://api.deezer.com/chart/0/tracks"
+        params = {'limit': 20}
+        
+        response = requests.get(url, params=params)
+        data = response.json()
+        
+        results = []
+        for track in data.get('data', []):
+            if track.get('preview'):
+                results.append({
+                    'id': track['id'],
+                    'title': track.get('title', 'Unknown'),
+                    'artist': track['artist'].get('name', 'Unknown Artist'),
+                    'duration': track.get('duration', 0),
+                    'thumbnail': track['album'].get('cover_medium'),
+                    'preview_url': track.get('preview'),
+                    'full_url': track.get('link'),
+                    'album': track['album'].get('title', 'Unknown Album')
+                })
+        
+        return results
+        
+    except Exception as e:
+        print(f"Deezer popular error: {e}")
         return []
 
 @router.get("/search")
-async def search_music(query: str = Query(..., min_length=2)):
-    """Поиск музыки"""
-    results = await asyncio.get_event_loop().run_in_executor(
-        None, search_youtube_music, query
-    )
+async def search_music(query: str = Query(..., min_length=1)):
+    """Поиск музыки через Deezer"""
+    results = search_deezer_music(query, 20)
     
     return {
         "query": query, 
@@ -56,29 +80,39 @@ async def search_music(query: str = Query(..., min_length=2)):
         "count": len(results)
     }
 
-@router.get("/stream/{video_id}")
-async def stream_music(video_id: str):
-    """Стримит музыку напрямую с YouTube"""
+@router.get("/popular")
+async def get_popular_music():
+    """Популярная музыка для главной страницы"""
+    results = get_deezer_popular()
+    
+    return {
+        "results": results,
+        "count": len(results)
+    }
+
+@router.get("/stream/{track_id}")
+async def stream_music(track_id: str):
+    """Стримит 30-секундный превью с Deezer"""
     try:
-        ydl_opts = {
-            'format': 'bestaudio/best',
-            'quiet': True,
-        }
+        # Получаем информацию о треке
+        url = f"https://api.deezer.com/track/{track_id}"
+        response = requests.get(url)
+        track_data = response.json()
         
-        def get_stream_url():
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(f"https://www.youtube.com/watch?v={video_id}", download=False)
-                return info['url']
+        preview_url = track_data.get('preview')
+        if not preview_url:
+            raise HTTPException(status_code=404, detail="Preview not available")
         
-        stream_url = await asyncio.get_event_loop().run_in_executor(None, get_stream_url)
-        
-        # Проксируем стрим
-        response = requests.get(stream_url, stream=True)
+        # Проксируем стрим превью
+        audio_response = requests.get(preview_url, stream=True)
         
         return StreamingResponse(
-            response.iter_content(chunk_size=8192),
+            audio_response.iter_content(chunk_size=8192),
             media_type="audio/mpeg",
-            headers={"Cache-Control": "no-cache"}
+            headers={
+                "Content-Type": "audio/mpeg",
+                "Cache-Control": "no-cache"
+            }
         )
         
     except Exception as e:
