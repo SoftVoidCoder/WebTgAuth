@@ -13,10 +13,13 @@ from app import crud
 
 load_dotenv()
 
+# Роутер для авторизации - все пути начинаются с /auth
 router = APIRouter(prefix="/auth", tags=["auth"])  
+
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
+# Проверяет подлинность данных от Telegram
 def verify_telegram_auth(auth_data: dict) -> dict:
     check_hash = auth_data.pop('hash')
     data_check_arr = [f"{k}={v}" for k, v in sorted(auth_data.items()) if v is not None]
@@ -30,6 +33,7 @@ def verify_telegram_auth(auth_data: dict) -> dict:
         raise ValueError("Data is outdated")
     return auth_data
 
+# Обработчик входа через Telegram
 @router.get("/telegram")
 async def auth_telegram(
     request: Request,
@@ -42,6 +46,7 @@ async def auth_telegram(
     username: str = None,
     photo_url: str = None
 ):
+    # Собираем данные от Telegram виджета
     auth_data = {
         'id': id,
         'first_name': first_name,
@@ -53,9 +58,12 @@ async def auth_telegram(
     }
     
     try:
+        # Проверяем что данные действительно от Telegram
         verified_data = verify_telegram_auth(auth_data.copy())
+        # Сохраняем/обновляем пользователя в БД
         db_user = crud.get_or_create_user(db, verified_data)
         
+        # Устанавливаем куку с данными пользователя
         response = RedirectResponse(url="/")
         response.set_cookie(
             "tg_user",
@@ -70,6 +78,7 @@ async def auth_telegram(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+# Выход из системы - удаляет куку
 @router.get("/logout")
 async def logout():
     response = RedirectResponse(url="/")

@@ -2,6 +2,7 @@
 
 {% block head %}
 <link rel="stylesheet" href="/static/css/home.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -19,4 +20,55 @@
         </div>
     {% endif %}
 </section>
+
+<section class="crypto-section">
+    <h2 class="section-title">Топ криптовалюты</h2>
+    <div class="charts-container" id="cryptoContainer">
+        <!-- Данные будут загружены через JavaScript -->
+        <div class="loading">Загрузка данных...</div>
+    </div>
+</section>
+
+<script>
+// Загружаем данные криптовалют при загрузке страницы
+async function loadCryptoData() {
+    try {
+        const response = await fetch('/crypto/prices');
+        const data = await response.json();
+        
+        const container = document.getElementById('cryptoContainer');
+        container.innerHTML = ''; // Очищаем loading
+        
+        data.cryptos.forEach(crypto => {
+            const changeClass = crypto.price_change_percentage_24h >= 0 ? 'positive' : 'negative';
+            const changeSymbol = crypto.price_change_percentage_24h >= 0 ? '↗' : '↘';
+            
+            const cryptoCard = `
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <img src="${crypto.image}" alt="${crypto.name}" class="coin-logo">
+                        <span class="coin-name">${crypto.name} (${crypto.symbol})</span>
+                    </div>
+                    <div class="coin-price">$${crypto.current_price.toLocaleString()}</div>
+                    <div class="price-change ${changeClass}">
+                        ${changeSymbol} ${Math.abs(crypto.price_change_percentage_24h).toFixed(2)}%
+                    </div>
+                    <div class="chart-placeholder">
+                        <canvas id="chart-${crypto.symbol.toLowerCase()}"></canvas>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML += cryptoCard;
+        });
+        
+    } catch (error) {
+        console.error('Error loading crypto data:', error);
+        document.getElementById('cryptoContainer').innerHTML = '<div class="error">Ошибка загрузки данных</div>';
+    }
+}
+
+// Загружаем данные при загрузке страницы
+document.addEventListener('DOMContentLoaded', loadCryptoData);
+</script>
 {% endblock %}

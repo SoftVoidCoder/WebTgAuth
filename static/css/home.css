@@ -34,3 +34,25 @@
         padding: 0 1rem;
     }
 }
+
+
+.loading, .error {
+    text-align: center;
+    padding: 2rem;
+    color: #b0b0b0;
+}
+
+.error {
+    color: #ff4444;
+}
+
+.coin-logo {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.chart-placeholder canvas {
+    width: 100% !important;
+    height: 200px !important;
+}
