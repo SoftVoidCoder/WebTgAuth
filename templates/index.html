@@ -2,8 +2,6 @@
 
 {% block head %}
 <link rel="stylesheet" href="/static/css/home.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="/static/js/charts.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -12,83 +10,31 @@
     <p>Отслеживайте свои инвестиции, получайте актуальные цены и будьте в курсе рыночных тенденций</p>
     
     {% if not user_data %}
-        <div style="margin-top: 2rem;">
-            <p style="margin-bottom: 1rem; color: #b0b0b0;">Войдите через Telegram чтобы начать</p>
+        <div class="auth-prompt">
+            <p>Войдите через Telegram чтобы начать</p>
         </div>
     {% else %}
-        <div style="margin-top: 2rem;">
-            <p style="color: #00c6ff;">Добро пожаловать, {{ user_data.first_name }}! 🚀</p>
+        <div class="welcome-message">
+            <p>Добро пожаловать, {{ user_data.first_name }}! 🚀</p>
+            <a href="/profile" class="cta-button">Перейти в профиль</a>
         </div>
     {% endif %}
 </section>
 
-<section class="crypto-section">
-    <h2 class="section-title">Топ криптовалюты</h2>
-    
-    <div class="charts-container" id="cryptoContainer">
-        <div class="loading">Загрузка реальных данных...</div>
+<section class="features">
+    <div class="feature-grid">
+        <div class="feature-card">
+            <h3>📊 Ваш портфель</h3>
+            <p>Добавляйте свои активы и отслеживайте прибыль</p>
+        </div>
+        <div class="feature-card">
+            <h3>🔔 Умные уведомления</h3>
+            <p>Получайте алерты о важных ценовых движениях</p>
+        </div>
+        <div class="feature-card">
+            <h3>📈 Аналитика</h3>
+            <p>Подробная статистика ваших инвестиций</p>
+        </div>
     </div>
 </section>
-
-<script>
-// Загружаем данные криптовалют и графики
-async function loadCryptoData() {
-    try {
-        const response = await fetch('/crypto/prices');
-        const data = await response.json();
-        
-        const container = document.getElementById('cryptoContainer');
-        container.innerHTML = '';
-        
-        data.cryptos.forEach(crypto => {
-            const changeClass = crypto.price_change_percentage_24h >= 0 ? 'positive' : 'negative';
-            const changeSymbol = crypto.price_change_percentage_24h >= 0 ? '↗' : '↘';
-            
-            const cryptoCard = `
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <img src="${crypto.image}" alt="${crypto.name}" class="coin-logo">
-                        <div class="coin-info">
-                            <span class="coin-name">${crypto.name}</span>
-                            <span class="coin-symbol">${crypto.symbol}</span>
-                        </div>
-                    </div>
-                    <div class="price-section">
-                        <div class="coin-price">$${crypto.current_price.toLocaleString()}</div>
-                        <div class="price-change ${changeClass}">
-                            ${changeSymbol} ${Math.abs(crypto.price_change_percentage_24h).toFixed(2)}%
-                        </div>
-                    </div>
-                    <div class="chart-wrapper">
-                        <canvas id="chart-${crypto.symbol.toLowerCase()}"></canvas>
-                    </div>
-                    <div class="market-cap">
-                        Market Cap: $${(crypto.market_cap / 1000000000).toFixed(2)}B
-                    </div>
-                </div>
-            `;
-            
-            container.innerHTML += cryptoCard;
-            
-            // Загружаем график для этой крипты
-            loadChartData(crypto.id, crypto.symbol);
-        });
-        
-    } catch (error) {
-        console.error('Error loading crypto data:', error);
-        document.getElementById('cryptoContainer').innerHTML = '<div class="error">Ошибка загрузки данных</div>';
-    }
-}
-
-// Обновляем данные каждые 2 минуты
-function startAutoRefresh() {
-    setInterval(loadCryptoData, 120000);
-}
-
-// Загружаем данные при загрузке страницы
-document.addEventListener('DOMContentLoaded', function() {
-    loadCryptoData();
-    startAutoRefresh();
-});
-</script>
 {% endblock %}
