@@ -33,13 +33,40 @@
             {% for artist in artists %}
             <div class="artist-card" onclick="window.location.href='/music/artist/{{ artist.id }}'">
                 <div class="artist-image">
-                    {% if artist.cover %}
-                    <img src="{{ artist.cover.uri.replace('%%', '300x300') }}" alt="{{ artist.name }}" class="artist-cover">
+                    {% if artist.cover_uri %}
+                    <img src="https://{{ artist.cover_uri.replace('%%', '300x300') }}" alt="{{ artist.name }}" class="artist-cover">
+                    {% elif artist.cover %}
+                    <img src="https://{{ artist.cover.uri.replace('%%', '300x300') }}" alt="{{ artist.name }}" class="artist-cover">
                     {% else %}
-                    <div class="artist-placeholder">{{ artist.name[0] }}</div>
+                    <div class="artist-placeholder">{{ artist.name[0] if artist.name else '?' }}</div>
                     {% endif %}
                 </div>
                 <h3 class="artist-name">{{ artist.name }}</h3>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if albums %}
+    <section class="artists-section">
+        <h2 class="section-title">Альбомы</h2>
+        <div class="artists-grid">
+            {% for album in albums %}
+            <div class="artist-card">
+                <div class="artist-image">
+                    {% if album.cover_uri %}
+                    <img src="https://{{ album.cover_uri.replace('%%', '300x300') }}" alt="{{ album.title }}" class="artist-cover">
+                    {% else %}
+                    <div class="artist-placeholder">{{ album.title[0] if album.title else '?' }}</div>
+                    {% endif %}
+                </div>
+                <h3 class="artist-name">{{ album.title }}</h3>
+                <p style="color: #888; font-size: 0.9rem; margin: 0.5rem 0 0 0;">
+                    {% for artist in album.artists %}
+                    {{ artist.name }}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                </p>
             </div>
             {% endfor %}
         </div>
@@ -51,7 +78,7 @@
         <h2 class="section-title">Треки</h2>
         <div class="tracks-grid">
             {% for track in tracks %}
-            <div class="track-card" data-track-id="{{ track.id }}_{{ track.albums[0].id if track.albums else track.id }}">
+            <div class="track-card" data-track-id="{% if track.album_id %}{{ track.id }}_{{ track.album_id }}{% else %}{{ track.id }}{% endif %}">
                 <div class="track-image">
                     {% if track.cover_uri %}
                     <img src="https://{{ track.cover_uri.replace('%%', '300x300') }}" alt="{{ track.title }}" class="track-cover">
@@ -67,7 +94,15 @@
                         {{ artist.name }}{% if not loop.last %}, {% endif %}
                         {% endfor %}
                     </p>
-                    <p class="track-album">{{ track.albums[0].title if track.albums else 'Неизвестный альбом' }}</p>
+                    <p class="track-album">
+                        {% if track.albums and track.albums[0] %}
+                            {{ track.albums[0].title }}
+                        {% elif track.album %}
+                            {{ track.album.title }}
+                        {% else %}
+                            Неизвестный альбом
+                        {% endif %}
+                    </p>
                 </div>
                 
                 <button class="play-btn" onclick="playTrack(this)">▶</button>
@@ -77,7 +112,7 @@
     </section>
     {% endif %}
 
-    {% if not tracks and not artists %}
+    {% if not tracks and not artists and not albums %}
     <div class="no-results">
         <p>По запросу "{{ search_query }}" ничего не найдено</p>
         <p style="margin-top: 1rem; color: #666;">Попробуйте изменить запрос</p>

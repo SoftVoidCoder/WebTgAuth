@@ -1,13 +1,12 @@
 let currentTrackId = null;
 let isPlaying = false;
 
-// Загрузка и воспроизведение музыки
+/// В функции loadAndPlayMusic добавляем обработку ошибок
 async function loadAndPlayMusic() {
     const musicContainer = document.getElementById('musicContainer');
     const tracksGrid = document.getElementById('tracksGrid');
     const listenBtn = document.querySelector('.listen-btn');
     
-    // Показываем загрузку
     listenBtn.innerHTML = '🔄 Загружаем треки...';
     listenBtn.disabled = true;
     
@@ -16,18 +15,15 @@ async function loadAndPlayMusic() {
         const data = await response.json();
         
         if (data.tracks && data.tracks.length > 0) {
-            // Скрываем кнопку и показываем треки
             listenBtn.style.display = 'none';
             musicContainer.style.display = 'block';
             
-            // Добавляем треки в сетку
             tracksGrid.innerHTML = '';
             data.tracks.forEach((track, index) => {
                 const trackCard = createTrackCard(track, index === 0);
                 tracksGrid.appendChild(trackCard);
             });
             
-            // Автоматически играем первый трек
             const firstTrack = data.tracks[0];
             await playTrackById(firstTrack.id, firstTrack.title, firstTrack.artists.join(', '));
             
@@ -37,11 +33,11 @@ async function loadAndPlayMusic() {
         
     } catch (error) {
         console.error('Ошибка:', error);
-        alert('Ошибка при загрузке музыки: ' + error.message);
+        alert('Ошибка при загрузке музыки: ' + (error.message || 'Неизвестная ошибка'));
         listenBtn.innerHTML = '🎵 Слушать музыку';
         listenBtn.disabled = false;
     }
-}
+}   
 
 // Создание карточки трека
 function createTrackCard(track, isFirst = false) {

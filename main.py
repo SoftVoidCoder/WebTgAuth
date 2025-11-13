@@ -51,14 +51,13 @@ async def get_popular_tracks():
         if not yandex_client:
             return JSONResponse({"error": "Сервис недоступен"}, status_code=503)
         
-        # Получаем чарт
         chart = yandex_client.chart()
         if not chart or not chart.chart:
             return {"tracks": []}
         
         tracks_data = []
         for track_short in chart.chart.tracks[:20]:
-            # Получаем ID альбома из track_short
+            # Используем правильные атрибуты TrackShort
             album_id = None
             if hasattr(track_short, 'albums') and track_short.albums:
                 album_id = track_short.albums[0].id
@@ -67,7 +66,6 @@ async def get_popular_tracks():
             
             track_id = f"{track_short.id}_{album_id}" if album_id else str(track_short.id)
             
-            # Получаем название альбома
             album_title = "Неизвестный альбом"
             if hasattr(track_short, 'albums') and track_short.albums:
                 album_title = track_short.albums[0].title
@@ -76,7 +74,7 @@ async def get_popular_tracks():
             
             track_info = {
                 "id": track_id,
-                "title": track_short.title,
+                "title": track_short.title,  # У TrackShort есть title
                 "artists": [artist.name for artist in track_short.artists],
                 "cover_uri": f"https://{track_short.cover_uri.replace('%%', '300x300')}" if track_short.cover_uri else None,
                 "album": album_title

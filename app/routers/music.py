@@ -15,7 +15,6 @@ try:
 except Exception as e:
     print(f"❌ Ошибка инициализации Яндекс.Музыка: {e}")
     yandex_client = None
-
 @router.get("/search", response_class=HTMLResponse)
 async def search_music(
     request: Request,
@@ -43,11 +42,20 @@ async def search_music(
                         elif hasattr(track, 'album') and track.album:
                             album_id = track.album.id
                         
+                        # Сохраняем album_id для использования в шаблоне
                         track.album_id = album_id
                         tracks.append(track)
                         
                 if search_result.artists:
-                    artists = search_result.artists.results[:20]
+                    for artist in search_result.artists.results[:20]:
+                        # Исправляем получение обложки артиста
+                        if hasattr(artist, 'cover') and artist.cover:
+                            artist.cover_uri = artist.cover.uri
+                        elif hasattr(artist, 'avatars') and artist.avatars:
+                            # Пробуем получить из avatars
+                            artist.cover_uri = artist.avatars[0].url if artist.avatars else None
+                        artists.append(artist)
+                        
                 if search_result.albums:
                     albums = search_result.albums.results[:15]
                     
