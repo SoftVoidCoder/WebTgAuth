@@ -48,32 +48,35 @@ async def home(request: Request, current_user: dict = Depends(get_current_user))
 @app.get("/api/popular")
 async def get_popular_tracks():
     try:
-        if not yandex_client:
-            return JSONResponse({"error": "Сервис недоступен"}, status_code=503)
-        
-        chart = yandex_client.chart()
-        if not chart or not chart.chart:
-            return {"tracks": []}
-        
-        tracks_data = []
-        for track_short in chart.chart.tracks[:20]:
-            # Используем только данные из TrackShort
-            album_id = track_short.albums[0].id if track_short.albums else None
-            track_id = f"{track_short.id}_{album_id}" if album_id else str(track_short.id)
-            
-            track_info = {
-                "id": track_id,
-                "title": track_short.title,  # У TrackShort ДОЛЖЕН быть title
-                "artists": [artist.name for artist in track_short.artists],
-                "cover_uri": f"https://{track_short.cover_uri.replace('%%', '300x300')}" if track_short.cover_uri else None,
-                "album": track_short.albums[0].title if track_short.albums else "Неизвестный альбом"
+        # Просто возвращаем тестовые данные
+        tracks_data = [
+            {
+                "id": "10994777_1193829",
+                "title": "Тестовый трек 1",
+                "artists": ["Kizaru"],
+                "cover_uri": None,
+                "album": "Тестовый альбом"
+            },
+            {
+                "id": "40133452_5206873",
+                "title": "Тестовый трек 2", 
+                "artists": ["Miyagi", "Эндшпиль"],
+                "cover_uri": None,
+                "album": "Другой альбом"
+            },
+            {
+                "id": "51385674_7163467",
+                "title": "Тестовый трек 3",
+                "artists": ["Макс Корж"],
+                "cover_uri": None, 
+                "album": "Третий альбом"
             }
-            tracks_data.append(track_info)
+        ]
         
         return {"tracks": tracks_data}
         
     except Exception as e:
-        print(f"Error getting popular tracks: {e}")
+        print(f"Error: {e}")
         return JSONResponse({"error": str(e)}, status_code=500)
 
 @app.get("/profile")
