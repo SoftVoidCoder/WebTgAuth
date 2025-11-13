@@ -51,75 +51,51 @@ async def get_popular_tracks():
         if not yandex_client:
             return JSONResponse({"error": "Сервис недоступен"}, status_code=503)
         
-        # Получаем популярные треки через новые чарты
-        chart = yandex_client.chart('world')
-        if not chart:
+        # Получаем чарт
+        chart = yandex_client.chart()
+        if not chart or not chart.chart:
             return {"tracks": []}
         
         tracks_data = []
-        for track in chart.chart.tracks[:20]:
-            # Безопасно получаем все данные
-            track_id = str(track.id)
+        for track_short in chart.chart.tracks[:20]:
+            # Получаем полный трек по ID
+            track_id = track_short.id
+            album_id = track_short.albums[0].id if track_short.albums else None
             
-            # Артисты
-            artists = []
-            if hasattr(track, 'artists') and track.artists:
-                for artist in track.artists:
-                    if hasattr(artist, 'name'):
-                        artists.append(artist.name)
+            # Получаем полную информацию о треке
+            if album_id:
+                full_tracks = yandex_client.tracks([f"{track_id}:{album_id}"])
+            else:
+                full_tracks = yandex_client.tracks([track_id])
             
-            # Альбом
-            album_title = "Неизвестный альбом"
-            album_id = None
-            
-            if hasattr(track, 'album') and track.album:
-                if hasattr(track.album, 'title'):
-                    album_title = track.album.title
-                if hasattr(track.album, 'id'):
-                    album_id = track.album.id
-            elif hasattr(track, 'albums') and track.albums and len(track.albums) > 0:
-                album = track.albums[0]
-                if hasattr(album, 'title'):
-                    album_title = album.title
-                if hasattr(album, 'id'):
-                    album_id = album.id
-            
-            # ID трека
-            track_full_id = f"{track_id}_{album_id}" if album_id else track_id
-            
-            # Обложка
-            cover_uri = None
-            if hasattr(track, 'cover_uri') and track.cover_uri:
-                cover_uri = f"https://{track.cover_uri.replace('%%', '400x400')}"
-            elif hasattr(track, 'og_image') and track.og_image:
-                cover_uri = f"https://{track.og_image.replace('%%', '400x400')}"
-            
-            track_info = {
-                "id": track_full_id,
-                "title": track.title,
-                "artists": artists,
-                "cover_uri": cover_uri,
-                "album": album_title
-            }
-            tracks_data.append(track_info)
+            if full_tracks and full_tracks[0]:
+                full_track = full_tracks[0]
+                track_info = {
+                    "id": f"{full_track.id}_{full_track.albums[0].id}" if full_track.albums else str(full_track.id),
+                    "title": full_track.title,
+                    "artists": [artist.name for artist in full_track.artists],
+                    "cover_uri": f"https://{full_track.cover_uri.replace('%%', '300x300')}" if full_track.cover_uri else None,
+                    "album": full_track.albums[0].title if full_track.albums else "Неизвестный альбом"
+                }
+                tracks_data.append(track_info)
         
         return {"tracks": tracks_data}
         
     except Exception as e:
         print(f"Error getting popular tracks: {e}")
-        # Возвращаем тестовые данные в случае ошибки
+        # Возвращаем тестовые данные
         return {
             "tracks": [
                 {
                     "id": "10994777_1193829",
-                    "title": "Трек 1",
+                    "title": "Тестовый трек 1",
                     "artists": ["Исполнитель 1"],
                     "cover_uri": None,
                     "album": "Альбом 1"
                 },
                 {
                     "id": "40133452_5206873",
-                    "title": "Трек 2", 
+                    "title": "Тестовый трек 2", 
                     "artists": ["Исполнитель 2"],
                     "cover_uri": None,
                     "album": "Альбом 2"
