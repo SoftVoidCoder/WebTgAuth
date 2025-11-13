@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-app = FastAPI(title="TG Music")
+app = FastAPI(title="Crypto Portfolio")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 BOT_USERNAME = os.getenv("BOT_USERNAME")
 
@@ -48,7 +48,8 @@ async def profile(request: Request, tg_user: Optional[str] = Cookie(None)):
     user_data = json.loads(tg_user)
     return templates.TemplateResponse("profile.html", {
         "request": request,
-        "user_data": user_data
+        "user_data": user_data,
+        "bot_username": BOT_USERNAME
     })
 
 @app.get("/auth/telegram")

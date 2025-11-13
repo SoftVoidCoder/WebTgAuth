@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Crypto Portfolio{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav">
+            <div class="logo">CryptoPortfolio</div>
+            
+            <div class="nav-links">
+                <a href="/">Главная</a>
+                <a href="#">Портфель</a>
+                <a href="#">Рынок</a>
+                <a href="#">Новости</a>
+                
+                <div class="user-section">
+                    {% if user_data %}
+                        <a href="/profile" class="user-avatar">
+                            {% if user_data.photo_url %}
+                                <img src="{{ user_data.photo_url }}" alt="Avatar" class="user-avatar">
+                            {% else %}
+                                <div class="default-avatar">
+                                    {{ user_data.first_name[0] }}
+                                </div>
+                            {% endif %}
+                        </a>
+                    {% else %}
+                        <script async 
+                            src="https://telegram.org/js/telegram-widget.js?22" 
+                            data-telegram-login="{{ bot_username }}" 
+                            data-size="medium" 
+                            data-auth-url="/auth/telegram"
+                            data-request-access="write">
+                        </script>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

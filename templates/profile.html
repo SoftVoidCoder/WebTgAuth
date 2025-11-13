@@ -1,17 +1,46 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Profile - TG Music</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
-<body>
-    <div class="container">
-        <h1>Your Profile</h1>
-        <p>Name: {{ user_data.first_name }} {{ user_data.last_name or '' }}</p>
-        <p>Username: @{{ user_data.username or 'No username' }}</p>
-        <a href="/">Home</a>
-        <a href="/logout">Logout</a>
+{% extends "base.html" %}
+
+{% block title %}Профиль - Crypto Portfolio{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        {% if user_data.photo_url %}
+            <img src="{{ user_data.photo_url }}" alt="Profile" class="profile-avatar">
+        {% else %}
+            <div class="default-avatar" style="width: 80px; height: 80px; font-size: 2rem;">
+                {{ user_data.first_name[0] }}
+            </div>
+        {% endif %}
+        <div class="profile-info">
+            <h2>{{ user_data.first_name }} {{ user_data.last_name or '' }}</h2>
+            <p>@{{ user_data.username or 'username не указан' }}</p>
+        </div>
     </div>
-</body>
-</html>
+
+    <div class="profile-details">
+        <div class="detail-item">
+            <span>ID пользователя:</span>
+            <span>{{ user_data.id }}</span>
+        </div>
+        <div class="detail-item">
+            <span>Имя:</span>
+            <span>{{ user_data.first_name }}</span>
+        </div>
+        {% if user_data.last_name %}
+        <div class="detail-item">
+            <span>Фамилия:</span>
+            <span>{{ user_data.last_name }}</span>
+        </div>
+        {% endif %}
+        {% if user_data.username %}
+        <div class="detail-item">
+            <span>Username:</span>
+            <span>@{{ user_data.username }}</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <a href="/logout" class="logout-btn" style="display: inline-block; text-align: center;">Выйти</a>
+</div>
+{% endblock %}
