@@ -12,7 +12,9 @@
         <nav class="nav">
             <div class="logo">CryptoPortfolio</div>
             
-            <div class="nav-links">
+            <button class="mobile-menu-btn" onclick="toggleMenu()">☰</button>
+            
+            <div class="nav-links" id="navLinks">
                 <a href="/">Главная</a>
                 <a href="#">Портфель</a>
                 <a href="#">Рынок</a>
@@ -47,5 +49,20 @@
     <main class="main-content">
         {% block content %}{% endblock %}
     </main>
+
+    <script>
+        function toggleMenu() {
+            const navLinks = document.getElementById('navLinks');
+            navLinks.classList.toggle('active');
+        }
+        
+        // Закрываем меню при клике на ссылку
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                const navLinks = document.getElementById('navLinks');
+                navLinks.classList.remove('active');
+            });
+        });
+    </script>
 </body>
 </html>
