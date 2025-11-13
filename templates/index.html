@@ -6,35 +6,100 @@
 
 {% block content %}
 <section class="hero">
-    <h1>Управляй своим крипто-портфелем</h1>
-    <p>Отслеживайте свои инвестиции, получайте актуальные цены и будьте в курсе рыночных тенденций</p>
+    <h1>Telegram Music</h1>
+    <p>Слушай любую музыку бесплатно</p>
     
-    {% if not user_data %}
-        <div class="auth-prompt">
-            <p>Войдите через Telegram чтобы начать</p>
-        </div>
-    {% else %}
-        <div class="welcome-message">
-            <p>Добро пожаловать, {{ user_data.first_name }}! 🚀</p>
-            <a href="/profile" class="cta-button">Перейти в профиль</a>
-        </div>
-    {% endif %}
-</section>
-
-<section class="features">
-    <div class="feature-grid">
-        <div class="feature-card">
-            <h3>📊 Ваш портфель</h3>
-            <p>Добавляйте свои активы и отслеживайте прибыль</p>
-        </div>
-        <div class="feature-card">
-            <h3>🔔 Умные уведомления</h3>
-            <p>Получайте алерты о важных ценовых движениях</p>
-        </div>
-        <div class="feature-card">
-            <h3>📈 Аналитика</h3>
-            <p>Подробная статистика ваших инвестиций</p>
-        </div>
+    <!-- Поиск музыки -->
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Найди любую музыку..." class="search-input">
+        <button onclick="searchMusic()" class="search-btn">Поиск</button>
+    </div>
+    
+    <!-- Результаты поиска -->
+    <div id="searchResults" class="search-results"></div>
+    
+    <!-- Аудиоплеер -->
+    <div id="audioPlayer" class="audio-player" style="display: none;">
+        <audio id="audioElement" controls class="audio-element">
+            Ваш браузер не поддерживает аудио элементы.
+        </audio>
+        <div id="nowPlaying" class="now-playing"></div>
     </div>
 </section>
+
+<script>
+// Поиск музыки
+async function searchMusic() {
+    const query = document.getElementById('searchInput').value;
+    if (!query) return;
+    
+    const resultsDiv = document.getElementById('searchResults');
+    resultsDiv.innerHTML = '<div class="loading">Ищем музыку...</div>';
+    
+    try {
+        const response = await fetch(`/music/search?query=${encodeURIComponent(query)}`);
+        const data = await response.json();
+        
+        if (data.results.length === 0) {
+            resultsDiv.innerHTML = '<div class="no-results">Ничего не найдено</div>';
+            return;
+        }
+        
+        let html = '<div class="results-grid">';
+        data.results.forEach(song => {
+            html += `
+                <div class="song-card" onclick="playSong('${song.id}', '${song.title.replace(/'/g, "\\'")}')">
+                    <div class="song-info">
+                        <h3>${song.title}</h3>
+                        <p>${song.artist}</p>
+                        <span class="duration">${formatDuration(song.duration)}</span>
+                    </div>
+                    <button class="play-btn">▶</button>
+                </div>
+            `;
+        });
+        html += '</div>';
+        
+        resultsDiv.innerHTML = html;
+        
+    } catch (error) {
+        console.error('Search error:', error);
+        resultsDiv.innerHTML = '<div class="error">Ошибка поиска</div>';
+    }
+}
+
+// Воспроизведение музыки
+function playSong(videoId, title) {
+    const audioPlayer = document.getElementById('audioPlayer');
+    const audioElement = document.getElementById('audioElement');
+    const nowPlaying = document.getElementById('nowPlaying');
+    
+    // Показываем плеер
+    audioPlayer.style.display = 'block';
+    
+    // Устанавливаем источник музыки
+    audioElement.src = `/music/stream/${videoId}?title=${encodeURIComponent(title)}`;
+    
+    // Показываем что играет
+    nowPlaying.textContent = `Сейчас играет: ${title}`;
+    
+    // Автовоспроизведение
+    audioElement.play().catch(e => console.log('Autoplay blocked:', e));
+}
+
+// Форматирование длительности
+function formatDuration(seconds) {
+    if (!seconds) return '--:--';
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+// Поиск при нажатии Enter
+document.getElementById('searchInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        searchMusic();
+    }
+});
+</script>
 {% endblock %}

@@ -7,7 +7,7 @@ from fastapi.templating import Jinja2Templates
 from app.database import get_db, engine
 from app import models
 from app.dependencies import get_current_user
-from app.routers import auth, users
+from app.routers import auth, users, music
 
 # Создаем таблицы в БД при старте
 models.Base.metadata.create_all(bind=engine)
@@ -21,7 +21,7 @@ templates = Jinja2Templates(directory="templates")
 # Подключаем модули авторизации и пользователей
 app.include_router(auth.router)   # /auth/telegram, /auth/logout
 app.include_router(users.router)  # /users/{id} - API пользователей
-
+app.include_router(music.router)
 
 
 BOT_USERNAME = os.getenv("BOT_USERNAME")
