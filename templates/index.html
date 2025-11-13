@@ -2,12 +2,27 @@
 
 {% block head %}
 <link rel="stylesheet" href="/static/css/home.css">
+<link rel="stylesheet" href="/static/css/music.css">
 {% endblock %}
 
 {% block content %}
 <section class="hero">
     <h1>Telegram Gift Exchange</h1>
     <p>Безопасный обмен подарками через Telegram</p>
+    
+    <!-- ПОИСК МУЗЫКИ -->
+    <div class="search-container">
+        <form method="get" action="/" class="search-form">
+            <input 
+                type="text" 
+                name="query" 
+                class="search-input" 
+                placeholder="Поиск треков, исполнителей..."
+                value="{{ search_query if search_query }}"
+            >
+            <button type="submit" class="search-btn">Найти</button>
+        </form>
+    </div>
     
     {% if not user_data %}
         <div class="auth-prompt">
@@ -16,11 +31,54 @@
     {% else %}
         <div class="welcome-message">
             <p>Добро пожаловать, {{ user_data.first_name }}! 🎁</p>
-            <a href="/profile" class="cta-button">Перейти в профиль</a>
         </div>
     {% endif %}
 </section>
 
+<!-- ТРЕКИ -->
+{% if tracks or popular_tracks %}
+<section class="music-section">
+    <h2 class="section-title">
+        {% if search_query %}
+            Результаты поиска: "{{ search_query }}"
+        {% else %}
+            🔥 Популярные треки
+        {% endif %}
+    </h2>
+    
+    <div class="music-grid">
+        {% for track in (tracks if tracks else popular_tracks) %}
+        <div class="track-card" data-track-id="{{ track.id }}_{{ track.albums[0].id if track.albums else track.id }}">
+            <div class="track-image">
+                {% if track.cover_uri %}
+                <img src="https://{{ track.cover_uri.replace('%%', '300x300') }}" alt="{{ track.title }}" class="track-cover">
+                {% else %}
+                <div class="track-placeholder">🎵</div>
+                {% endif %}
+            </div>
+            
+            <div class="track-info">
+                <h3 class="track-title">{{ track.title }}</h3>
+                <p class="track-artist">
+                    {% for artist in track.artists %}
+                    {{ artist.name }}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                </p>
+                <p class="track-album">{{ track.albums[0].title if track.albums else 'Неизвестный альбом' }}</p>
+                
+                <div class="track-meta">
+                    <span class="track-duration">{{ (track.duration_ms / 60000)|round(1) }} мин</span>
+                </div>
+            </div>
+            
+            <button class="play-btn" onclick="playTrack(this)">▶</button>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- ОСНОВНОЙ КОНТЕНТ -->
 <section class="features">
     <h2 class="section-title">Как это работает</h2>
     <div class="features-grid">
@@ -38,4 +96,14 @@
         </div>
     </div>
 </section>
+
+<!-- АУДИО ПЛЕЕР -->
+<div class="audio-player" id="audioPlayer" style="display: none;">
+    <audio controls class="audio-element" id="audioElement">
+        Ваш браузер не поддерживает аудио элементы.
+    </audio>
+    <div class="now-playing" id="nowPlaying"></div>
+</div>
+
+<script src="/static/js/music.js"></script>
 {% endblock %}
