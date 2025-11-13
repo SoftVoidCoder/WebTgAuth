@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="/static/css/music.css">
+{% endblock %}
+
+{% block title %}Поиск музыки{% endblock %}
+
+{% block content %}
+<section class="search-hero">
+    <h1>🔍 Поиск музыки</h1>
+    
+    <div class="search-container">
+        <form method="get" action="/music/search" class="search-form">
+            <input 
+                type="text" 
+                name="query" 
+                class="search-input" 
+                placeholder="Исполнитель, трек или альбом..."
+                value="{{ search_query if search_query }}"
+                autofocus
+            >
+            <button type="submit" class="search-btn">Найти</button>
+        </form>
+    </div>
+</section>
+
+{% if search_query %}
+    {% if artists %}
+    <section class="artists-section">
+        <h2 class="section-title">Исполнители</h2>
+        <div class="artists-grid">
+            {% for artist in artists %}
+            <div class="artist-card" onclick="window.location.href='/music/artist/{{ artist.id }}'">
+                <div class="artist-image">
+                    {% if artist.cover %}
+                    <img src="{{ artist.cover.uri.replace('%%', '300x300') }}" alt="{{ artist.name }}" class="artist-cover">
+                    {% else %}
+                    <div class="artist-placeholder">{{ artist.name[0] }}</div>
+                    {% endif %}
+                </div>
+                <div class="artist-info">
+                    <h3 class="artist-name">{{ artist.name }}</h3>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if tracks %}
+    <section class="tracks-section">
+        <h2 class="section-title">Треки</h2>
+        <div class="tracks-grid">
+            {% for track in tracks %}
+            <div class="track-card" data-track-id="{{ track.id }}_{{ track.albums[0].id if track.albums else track.id }}">
+                <div class="track-image">
+                    {% if track.cover_uri %}
+                    <img src="https://{{ track.cover_uri.replace('%%', '300x300') }}" alt="{{ track.title }}" class="track-cover">
+                    {% else %}
+                    <div class="track-placeholder">🎵</div>
+                    {% endif %}
+                </div>
+                
+                <div class="track-info">
+                    <h3 class="track-title">{{ track.title }}</h3>
+                    <p class="track-artist">
+                        {% for artist in track.artists %}
+                        {{ artist.name }}{% if not loop.last %}, {% endif %}
+                        {% endfor %}
+                    </p>
+                </div>
+                
+                <button class="play-btn" onclick="playTrack(this)">▶</button>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if not tracks and not artists %}
+    <div class="no-results">
+        <p>По запросу "{{ search_query }}" ничего не найдено</p>
+    </div>
+    {% endif %}
+{% endif %}
+
+<!-- АУДИО ПЛЕЕР -->
+<div class="audio-player" id="audioPlayer" style="display: none;">
+    <audio controls class="audio-element" id="audioElement">
+        Ваш браузер не поддерживает аудио элементы.
+    </audio>
+    <div class="now-playing" id="nowPlaying"></div>
+</div>
+
+<script src="/static/js/music.js"></script>
+{% endblock %}
