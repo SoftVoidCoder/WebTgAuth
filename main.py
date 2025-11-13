@@ -3,12 +3,13 @@ from fastapi import FastAPI, Request, Depends
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session  # ← ДОБАВИТЬ ЭТОТ ИМПОРТ
 
 from app.database import get_db, engine
 from app import models
 from app.dependencies import get_current_user
 from app.routers import auth, users
-from app import crud  # ← ДОБАВИТЬ ЭТОТ ИМПОРТ
+from app import crud
 
 # Создаем таблицы
 models.Base.metadata.create_all(bind=engine)
@@ -43,6 +44,7 @@ async def home(
 @app.get("/profile")
 async def profile(
     request: Request,
+    db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
     if not current_user:
@@ -50,8 +52,7 @@ async def profile(
     
     user_gifts = []
     if current_user["db_user"]:
-        # Используем crud для получения подарков
-        user_gifts = crud.get_user_gifts(current_user["db_user"].id)
+        user_gifts = crud.get_user_gifts(db, current_user["db_user"].id)
     
     return templates.TemplateResponse("profile.html", {
         "request": request,
