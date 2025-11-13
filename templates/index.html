@@ -2,6 +2,7 @@
 
 {% block head %}
 <link rel="stylesheet" href="/static/css/home.css">
+<link rel="stylesheet" href="/static/css/music.css">
 {% endblock %}
 
 {% block content %}
@@ -9,20 +10,22 @@
     <h1>🎵 Music App</h1>
     <p>Слушайте музыку через Telegram</p>
     
-    <!-- КНОПКА СЛУШАТЬ -->
-    <div class="listen-section">
-        <a href="/music/listen" class="listen-btn">
-            🎵 Слушать музыку
-        </a>
-    </div>
-    
     {% if not user_data %}
         <div class="auth-prompt">
             <p>Войдите через Telegram чтобы начать</p>
         </div>
     {% else %}
-        <div class="welcome-message">
-            <p>Добро пожаловать, {{ user_data.first_name }}!</p>
+        <!-- КНОПКА СЛУШАТЬ -->
+        <div class="listen-section">
+            <button class="listen-btn" onclick="loadAndPlayMusic()">
+                🎵 Слушать музыку
+            </button>
+        </div>
+
+        <!-- ТРЕКИ (появятся после нажатия кнопки) -->
+        <div id="musicContainer" style="display: none;">
+            <h2 class="section-title">🔥 Популярные треки</h2>
+            <div class="tracks-grid" id="tracksGrid"></div>
         </div>
     {% endif %}
 </section>

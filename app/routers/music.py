@@ -16,31 +16,6 @@ except Exception as e:
     print(f"❌ Ошибка инициализации Яндекс.Музыка: {e}")
     yandex_client = None
 
-@router.get("/listen", response_class=HTMLResponse)
-async def listen_music(
-    request: Request, 
-    current_user: dict = Depends(get_current_user)
-):
-    user_data = current_user["telegram_data"] if current_user else None
-    db_user = current_user["db_user"] if current_user else None
-    
-    popular_tracks = []
-    
-    try:
-        if yandex_client:
-            chart = yandex_client.chart()
-            if chart and chart.chart:
-                popular_tracks = chart.chart.tracks[:20]
-    except Exception as e:
-        print(f"Music error: {e}")
-    
-    return templates.TemplateResponse("listen.html", {
-        "request": request,
-        "user_data": user_data,
-        "db_user": db_user,
-        "popular_tracks": popular_tracks
-    })
-
 @router.get("/search", response_class=HTMLResponse)
 async def search_music(
     request: Request,
@@ -52,15 +27,20 @@ async def search_music(
     
     tracks = []
     artists = []
+    albums = []
     
     try:
         if yandex_client and query:
             search_result = yandex_client.search(query)
+            
             if search_result:
                 if search_result.tracks:
                     tracks = search_result.tracks.results[:30]
                 if search_result.artists:
                     artists = search_result.artists.results[:20]
+                if search_result.albums:
+                    albums = search_result.albums.results[:15]
+                    
     except Exception as e:
         print(f"Search error: {e}")
     
@@ -70,6 +50,7 @@ async def search_music(
         "db_user": db_user,
         "tracks": tracks,
         "artists": artists,
+        "albums": albums,
         "search_query": query
     })
 
