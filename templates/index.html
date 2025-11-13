@@ -14,27 +14,87 @@
         <input type="text" id="searchInput" placeholder="Найди любую музыку..." class="search-input">
         <button onclick="searchMusic()" class="search-btn">Поиск</button>
     </div>
-    
-    <!-- Результаты поиска -->
-    <div id="searchResults" class="search-results"></div>
-    
-    <!-- Аудиоплеер -->
-    <div id="audioPlayer" class="audio-player" style="display: none;">
-        <audio id="audioElement" controls class="audio-element">
-            Ваш браузер не поддерживает аудио элементы.
-        </audio>
-        <div id="nowPlaying" class="now-playing"></div>
+</section>
+
+<!-- Популярная музыка -->
+<section class="popular-section">
+    <h2 class="section-title">🎵 Популярные треки</h2>
+    <div id="popularMusic" class="music-grid">
+        <div class="loading">Загрузка музыки...</div>
     </div>
 </section>
 
+<!-- Результаты поиска -->
+<section id="searchSection" class="search-section" style="display: none;">
+    <h2 class="section-title">Результаты поиска</h2>
+    <div id="searchResults" class="music-grid"></div>
+</section>
+
+<!-- Аудиоплеер -->
+<div id="audioPlayer" class="audio-player" style="display: none;">
+    <audio id="audioElement" controls class="audio-element">
+        Ваш браузер не поддерживает аудио элементы.
+    </audio>
+    <div id="nowPlaying" class="now-playing"></div>
+</div>
+
 <script>
+// Популярные треки при загрузке
+const popularQueries = [
+    "lofi hip hop radio",
+    "chill music 2024", 
+    "pop hits 2024",
+    "rock classics",
+    "jazz relaxing music"
+];
+
+// Загрузка популярной музыки
+async function loadPopularMusic() {
+    try {
+        const container = document.getElementById('popularMusic');
+        container.innerHTML = '<div class="loading">Загрузка популярной музыки...</div>';
+        
+        // Ищем по популярным запросам
+        let allResults = [];
+        for (const query of popularQueries.slice(0, 2)) { // Берем первые 2 запроса
+            const response = await fetch(`/music/search?query=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            allResults = allResults.concat(data.results.slice(0, 5)); // По 5 треков с каждого
+        }
+        
+        // Убираем дубликаты
+        const uniqueResults = allResults.filter((track, index, self) =>
+            index === self.findIndex(t => t.id === track.id)
+        );
+        
+        if (uniqueResults.length === 0) {
+            container.innerHTML = '<div class="no-results">Не удалось загрузить музыку</div>';
+            return;
+        }
+        
+        let html = '';
+        uniqueResults.slice(0, 15).forEach(song => { // Максимум 15 треков
+            html += createSongCard(song);
+        });
+        
+        container.innerHTML = html;
+        
+    } catch (error) {
+        console.error('Error loading popular music:', error);
+        document.getElementById('popularMusic').innerHTML = '<div class="error">Ошибка загрузки музыки</div>';
+    }
+}
+
 // Поиск музыки
 async function searchMusic() {
     const query = document.getElementById('searchInput').value;
     if (!query) return;
     
     const resultsDiv = document.getElementById('searchResults');
+    const searchSection = document.getElementById('searchSection');
+    
     resultsDiv.innerHTML = '<div class="loading">Ищем музыку...</div>';
+    searchSection.style.display = 'block';
     
     try {
         const response = await fetch(`/music/search?query=${encodeURIComponent(query)}`);
@@ -45,20 +105,10 @@ async function searchMusic() {
             return;
         }
         
-        let html = '<div class="results-grid">';
+        let html = '';
         data.results.forEach(song => {
-            html += `
-                <div class="song-card" onclick="playSong('${song.id}', '${song.title.replace(/'/g, "\\'")}')">
-                    <div class="song-info">
-                        <h3>${song.title}</h3>
-                        <p>${song.artist}</p>
-                        <span class="duration">${formatDuration(song.duration)}</span>
-                    </div>
-                    <button class="play-btn">▶</button>
-                </div>
-            `;
+            html += createSongCard(song);
         });
-        html += '</div>';
         
         resultsDiv.innerHTML = html;
         
@@ -68,8 +118,34 @@ async function searchMusic() {
     }
 }
 
+// Создание карточки трека
+function createSongCard(song) {
+    const safeTitle = song.title.replace(/'/g, "\\'").replace(/"/g, '\\"');
+    const safeArtist = song.artist.replace(/'/g, "\\'").replace(/"/g, '\\"');
+    
+    return `
+        <div class="song-card" onclick="playSong('${song.id}', '${safeArtist}', '${safeTitle}')">
+            <div class="song-image">
+                ${song.thumbnail ? 
+                    `<img src="${song.thumbnail}" alt="${song.title}" class="song-thumbnail">` :
+                    `<div class="song-placeholder">🎵</div>`
+                }
+            </div>
+            <div class="song-info">
+                <h3 class="song-title">${song.title}</h3>
+                <p class="song-artist">${song.artist}</p>
+                <div class="song-meta">
+                    <span class="duration">${formatDuration(song.duration)}</span>
+                    ${song.view_count ? `<span class="views">👁 ${formatViews(song.view_count)}</span>` : ''}
+                </div>
+            </div>
+            <button class="play-btn">▶</button>
+        </div>
+    `;
+}
+
 // Воспроизведение музыки
-function playSong(videoId, title) {
+function playSong(videoId, artist, title) {
     const audioPlayer = document.getElementById('audioPlayer');
     const audioElement = document.getElementById('audioElement');
     const nowPlaying = document.getElementById('nowPlaying');
@@ -78,10 +154,10 @@ function playSong(videoId, title) {
     audioPlayer.style.display = 'block';
     
     // Устанавливаем источник музыки
-    audioElement.src = `/music/stream/${videoId}?title=${encodeURIComponent(title)}`;
+    audioElement.src = `/music/stream/${videoId}`;
     
     // Показываем что играет
-    nowPlaying.textContent = `Сейчас играет: ${title}`;
+    nowPlaying.textContent = `Сейчас играет: ${artist} - ${title}`;
     
     // Автовоспроизведение
     audioElement.play().catch(e => console.log('Autoplay blocked:', e));
@@ -95,11 +171,24 @@ function formatDuration(seconds) {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
+// Форматирование просмотров
+function formatViews(views) {
+    if (views >= 1000000) {
+        return (views / 1000000).toFixed(1) + 'M';
+    } else if (views >= 1000) {
+        return (views / 1000).toFixed(1) + 'K';
+    }
+    return views;
+}
+
 // Поиск при нажатии Enter
 document.getElementById('searchInput').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
         searchMusic();
     }
 });
+
+// Загружаем популярную музыку при загрузке страницы
+document.addEventListener('DOMContentLoaded', loadPopularMusic);
 </script>
 {% endblock %}
