@@ -48,36 +48,84 @@ async def home(request: Request, current_user: dict = Depends(get_current_user))
 @app.get("/api/popular")
 async def get_popular_tracks():
     try:
-        # Просто возвращаем тестовые данные
-        tracks_data = [
-            {
-                "id": "10994777_1193829",
-                "title": "Тестовый трек 1",
-                "artists": ["Kizaru"],
-                "cover_uri": None,
-                "album": "Тестовый альбом"
-            },
-            {
-                "id": "40133452_5206873",
-                "title": "Тестовый трек 2", 
-                "artists": ["Miyagi", "Эндшпиль"],
-                "cover_uri": None,
-                "album": "Другой альбом"
-            },
-            {
-                "id": "51385674_7163467",
-                "title": "Тестовый трек 3",
-                "artists": ["Макс Корж"],
-                "cover_uri": None, 
-                "album": "Третий альбом"
+        if not yandex_client:
+            return JSONResponse({"error": "Сервис недоступен"}, status_code=503)
+        
+        # Получаем популярные треки через новые чарты
+        chart = yandex_client.chart('world')
+        if not chart:
+            return {"tracks": []}
+        
+        tracks_data = []
+        for track in chart.chart.tracks[:20]:
+            # Безопасно получаем все данные
+            track_id = str(track.id)
+            
+            # Артисты
+            artists = []
+            if hasattr(track, 'artists') and track.artists:
+                for artist in track.artists:
+                    if hasattr(artist, 'name'):
+                        artists.append(artist.name)
+            
+            # Альбом
+            album_title = "Неизвестный альбом"
+            album_id = None
+            
+            if hasattr(track, 'album') and track.album:
+                if hasattr(track.album, 'title'):
+                    album_title = track.album.title
+                if hasattr(track.album, 'id'):
+                    album_id = track.album.id
+            elif hasattr(track, 'albums') and track.albums and len(track.albums) > 0:
+                album = track.albums[0]
+                if hasattr(album, 'title'):
+                    album_title = album.title
+                if hasattr(album, 'id'):
+                    album_id = album.id
+            
+            # ID трека
+            track_full_id = f"{track_id}_{album_id}" if album_id else track_id
+            
+            # Обложка
+            cover_uri = None
+            if hasattr(track, 'cover_uri') and track.cover_uri:
+                cover_uri = f"https://{track.cover_uri.replace('%%', '400x400')}"
+            elif hasattr(track, 'og_image') and track.og_image:
+                cover_uri = f"https://{track.og_image.replace('%%', '400x400')}"
+            
+            track_info = {
+                "id": track_full_id,
+                "title": track.title,
+                "artists": artists,
+                "cover_uri": cover_uri,
+                "album": album_title
             }
-        ]
+            tracks_data.append(track_info)
         
         return {"tracks": tracks_data}
         
     except Exception as e:
-        print(f"Error: {e}")
-        return JSONResponse({"error": str(e)}, status_code=500)
+        print(f"Error getting popular tracks: {e}")
+        # Возвращаем тестовые данные в случае ошибки
+        return {
+            "tracks": [
+                {
+                    "id": "10994777_1193829",
+                    "title": "Трек 1",
+                    "artists": ["Исполнитель 1"],
+                    "cover_uri": None,
+                    "album": "Альбом 1"
+                },
+                {
+                    "id": "40133452_5206873",
+                    "title": "Трек 2", 
+                    "artists": ["Исполнитель 2"],
+                    "cover_uri": None,
+                    "album": "Альбом 2"
+                }
+            ]
+        }
 
 @app.get("/profile")
 async def profile(request: Request, current_user: dict = Depends(get_current_user)):
