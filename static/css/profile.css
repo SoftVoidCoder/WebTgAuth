@@ -84,3 +84,130 @@
         text-align: center;
     }
 }
+
+
+/* Стили для подарков */
+.gifts-section {
+    margin: 2rem 0;
+}
+
+.section-title {
+    color: #00c6ff;
+    margin-bottom: 1.5rem;
+    font-size: 1.3rem;
+}
+
+.gifts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.gift-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 1.2rem;
+    transition: all 0.3s;
+}
+
+.gift-card:hover {
+    border-color: #0088cc;
+    transform: translateY(-2px);
+}
+
+.gift-image {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.gift-image-placeholder {
+    width: 100%;
+    height: 120px;
+    background: linear-gradient(135deg, #0088cc, #00c6ff);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.gift-info h4 {
+    color: white;
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+}
+
+.gift-description {
+    color: #b0b0b0;
+    font-size: 0.9rem;
+    margin: 0 0 1rem 0;
+    line-height: 1.4;
+}
+
+.gift-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+}
+
+.gift-price {
+    color: #00ff00;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.gift-category {
+    color: #b0b0b0;
+    font-size: 0.8rem;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.2rem 0.5rem;
+    border-radius: 12px;
+}
+
+.gift-status {
+    font-size: 0.8rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    display: inline-block;
+}
+
+.gift-status.active {
+    background: rgba(0, 255, 0, 0.1);
+    color: #00ff00;
+}
+
+.gift-status.sold {
+    background: rgba(255, 255, 0, 0.1);
+    color: #ffff00;
+}
+
+.no-gifts {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: #b0b0b0;
+}
+
+.hint {
+    font-size: 0.9rem;
+    color: #666;
+    margin-top: 0.5rem;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .gifts-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .gift-card {
+        padding: 1rem;
+    }
+}

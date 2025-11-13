@@ -4,29 +4,64 @@
 <link rel="stylesheet" href="/static/css/profile.css">
 {% endblock %}
 
-{% block title %}Профиль - Crypto Portfolio{% endblock %}
+{% block title %}Профиль - {{ user_data.first_name }}{% endblock %}
 
 {% block content %}
 <div class="profile-container">
+    <!-- Информация пользователя -->
     <div class="profile-header">
         {% if user_data.photo_url %}
             <img src="{{ user_data.photo_url }}" alt="Profile" class="profile-avatar">
         {% else %}
-            <div class="default-avatar" style="width: 80px; height: 80px; font-size: 2rem;">
+            <div class="default-avatar profile-avatar-large">
                 {{ user_data.first_name[0] }}
             </div>
         {% endif %}
         <div class="profile-info">
             <h2>{{ user_data.first_name }} {{ user_data.last_name or '' }}</h2>
-            <p>@{{ user_data.username or 'username не указан' }}</p>
+            <p class="username">@{{ user_data.username or 'username не указан' }}</p>
             {% if db_user and db_user.created_at %}
-            <p style="color: #00c6ff; font-size: 0.9rem; margin-top: 0.5rem;">
+            <p class="registration-date">
                 ✅ В базе данных с {{ db_user.created_at.strftime('%d.%m.%Y') }}
             </p>
             {% endif %}
         </div>
     </div>
 
+    <!-- Мои подарки -->
+    <section class="gifts-section">
+        <h3 class="section-title">🎁 Мои подарки</h3>
+        
+        {% if user_gifts %}
+            <div class="gifts-grid">
+                {% for gift in user_gifts %}
+                <div class="gift-card">
+                    {% if gift.image_url %}
+                        <img src="{{ gift.image_url }}" alt="{{ gift.title }}" class="gift-image">
+                    {% else %}
+                        <div class="gift-image-placeholder">🎁</div>
+                    {% endif %}
+                    <div class="gift-info">
+                        <h4>{{ gift.title }}</h4>
+                        <p class="gift-description">{{ gift.description or 'Описание отсутствует' }}</p>
+                        <div class="gift-meta">
+                            <span class="gift-price">{{ gift.price }} ₽</span>
+                            <span class="gift-category">{{ gift.category or 'Без категории' }}</span>
+                        </div>
+                        <span class="gift-status {{ gift.status }}">{{ gift.status }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-gifts">
+                <p>У вас пока нет подарков</p>
+                <p class="hint">Добавьте первый подарок чтобы начать продавать</p>
+            </div>
+        {% endif %}
+    </section>
+
+    <!-- Информация профиля -->
     <div class="profile-details">
         <div class="detail-item">
             <span>ID в Telegram:</span>
@@ -58,12 +93,6 @@
         <div class="detail-item">
             <span>Зарегистрирован:</span>
             <span>{{ db_user.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
-        </div>
-        {% endif %}
-        {% if db_user and db_user.updated_at %}
-        <div class="detail-item">
-            <span>Обновлен:</span>
-            <span>{{ db_user.updated_at.strftime('%d.%m.%Y %H:%M') }}</span>
         </div>
         {% endif %}
     </div>

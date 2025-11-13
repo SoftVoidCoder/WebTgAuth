@@ -42,3 +42,16 @@ def get_or_create_user(db: Session, telegram_data: dict):
     else:
         # Если не нашли - создаем нового
         return create_user(db, telegram_data)
+    
+
+def get_user_gifts(db: Session, user_id: int):
+    """Получает все подарки пользователя"""
+    return db.query(models.Gift).filter(models.Gift.seller_id == user_id).all()
+
+def create_gift(db: Session, gift_data: dict):
+    """Создает новый подарок"""
+    db_gift = models.Gift(**gift_data)
+    db.add(db_gift)
+    db.commit()
+    db.refresh(db_gift)
+    return db_gift
