@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Profile - TG Music</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Your Profile</h1>
+        <p>Name: {{ user_data.first_name }} {{ user_data.last_name or '' }}</p>
+        <p>Username: @{{ user_data.username or 'No username' }}</p>
+        <a href="/">Home</a>
+        <a href="/logout">Logout</a>
+    </div>
+</body>
+</html>

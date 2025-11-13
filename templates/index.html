@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TG Music</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>TG Music</h1>
+        {% if user_data %}
+            <p>Welcome, {{ user_data.first_name }}!</p>
+            <a href="/profile">Profile</a>
+            <a href="/logout">Logout</a>
+        {% else %}
+            <script async src="https://telegram.org/js/telegram-widget.js?22" 
+                    data-telegram-login="{{ bot_username }}" 
+                    data-size="large" 
+                    data-auth-url="/auth/telegram"></script>
+        {% endif %}
+    </div>
+</body>
+</html>
