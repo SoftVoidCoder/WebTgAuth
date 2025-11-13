@@ -57,27 +57,16 @@ async def get_popular_tracks():
         
         tracks_data = []
         for track_short in chart.chart.tracks[:20]:
-            # Используем правильные атрибуты TrackShort
-            album_id = None
-            if hasattr(track_short, 'albums') and track_short.albums:
-                album_id = track_short.albums[0].id
-            elif hasattr(track_short, 'album') and track_short.album:
-                album_id = track_short.album.id
-            
+            # Используем только данные из TrackShort
+            album_id = track_short.albums[0].id if track_short.albums else None
             track_id = f"{track_short.id}_{album_id}" if album_id else str(track_short.id)
-            
-            album_title = "Неизвестный альбом"
-            if hasattr(track_short, 'albums') and track_short.albums:
-                album_title = track_short.albums[0].title
-            elif hasattr(track_short, 'album') and track_short.album:
-                album_title = track_short.album.title
             
             track_info = {
                 "id": track_id,
-                "title": track_short.title,  # У TrackShort есть title
+                "title": track_short.title,  # У TrackShort ДОЛЖЕН быть title
                 "artists": [artist.name for artist in track_short.artists],
                 "cover_uri": f"https://{track_short.cover_uri.replace('%%', '300x300')}" if track_short.cover_uri else None,
-                "album": album_title
+                "album": track_short.albums[0].title if track_short.albums else "Неизвестный альбом"
             }
             tracks_data.append(track_info)
         
