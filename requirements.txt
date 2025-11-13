@@ -7,3 +7,4 @@ sqlalchemy==1.4.46
 aiohttp==3.9.1
 yt-dlp==2023.11.14
 aiofiles==23.2.1
+yandex-music>=2.0.0

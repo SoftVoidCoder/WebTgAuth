@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="/static/css/home.css">
+{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <h1>Telegram Gift Exchange</h1>
+    <p>Безопасный обмен подарками через Telegram</p>
+    
+    <!-- КНОПКА ПЕРЕХОДА НА МУЗЫКУ -->
+    <div class="music-redirect" style="margin: 2rem 0;">
+        <a href="/music" class="music-btn" style="
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #ff6b6b, #ffa726);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        ">
+            🎵 СЛУШАТЬ МУЗЫКУ 🎵
+        </a>
+        <p style="margin-top: 1rem; color: #b0b0b0; font-size: 0.9rem;">
+            Миллионы треков из Яндекс.Музыки
+        </p>
+    </div>
+    
+    {% if not user_data %}
+        <div class="auth-prompt">
+            <p>Войдите через Telegram чтобы начать</p>
+        </div>
+    {% else %}
+        <div class="welcome-message">
+            <p>Добро пожаловать, {{ user_data.first_name }}! 🎁</p>
+            <a href="/profile" class="cta-button">Перейти в профиль</a>
+        </div>
+    {% endif %}
+</section>
+
+<section class="features">
+    <h2 class="section-title">Как это работает</h2>
+    <div class="features-grid">
+        <div class="feature-card">
+            <h3>🎁 Создайте подарок</h3>
+            <p>Добавьте подарок в свой профиль с описанием и ценой</p>
+        </div>
+        <div class="feature-card">
+            <h3>🔍 Найдите покупателя</h3>
+            <p>Покажите свои подарки другим пользователям</p>
+        </div>
+        <div class="feature-card">
+            <h3>💳 Безопасная сделка</h3>
+            <p>Гарантированный обмен через Telegram</p>
+        </div>
+        <div class="feature-card">
+            <h3>🎵 Музыка</h3>
+            <p>Слушайте музыку пока обмениваетесь подарками</p>
+            <a href="/music" style="color: #ff6b6b; text-decoration: none; font-weight: bold;">→ Перейти к музыке</a>
+        </div>
+    </div>
+</section>
+
+<style>
+.music-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.feature-card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid #2a2a2a;
+    transition: all 0.3s;
+}
+
+.feature-card:hover {
+    border-color: #0088cc;
+    transform: translateY(-2px);
+}
+</style>
+{% endblock %}
