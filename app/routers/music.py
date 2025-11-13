@@ -35,7 +35,17 @@ async def search_music(
             
             if search_result:
                 if search_result.tracks:
-                    tracks = search_result.tracks.results[:30]
+                    for track in search_result.tracks.results[:30]:
+                        # Исправляем получение ID альбома
+                        album_id = None
+                        if hasattr(track, 'albums') and track.albums:
+                            album_id = track.albums[0].id
+                        elif hasattr(track, 'album') and track.album:
+                            album_id = track.album.id
+                        
+                        track.album_id = album_id
+                        tracks.append(track)
+                        
                 if search_result.artists:
                     artists = search_result.artists.results[:20]
                 if search_result.albums:
@@ -53,21 +63,23 @@ async def search_music(
         "albums": albums,
         "search_query": query
     })
-
 @router.get("/track/{track_id}")
 async def get_track_url(track_id: str, current_user: dict = Depends(get_current_user)):
     try:
         if not yandex_client:
             return {"error": "Сервис недоступен"}
         
-        parts = track_id.split('_')
-        if len(parts) != 2:
-            return {"error": "Неверный формат ID трека"}
+        # Обрабатываем разные форматы ID
+        if '_' in track_id:
+            parts = track_id.split('_')
+            track_id_num = parts[0]
+            album_id = parts[1]
+            track_full_id = f"{track_id_num}:{album_id}"
+        else:
+            # Если только ID трека, пробуем найти без альбома
+            track_full_id = track_id
         
-        track_id_num = parts[0]
-        album_id = parts[1]
-        
-        tracks = yandex_client.tracks([f"{track_id_num}:{album_id}"])
+        tracks = yandex_client.tracks([track_full_id])
         if not tracks:
             return {"error": "Трек не найден"}
         
