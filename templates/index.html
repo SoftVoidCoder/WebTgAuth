@@ -1,43 +1,3 @@
-{% extends "base.html" %}
-
-{% block head %}
-<link rel="stylesheet" href="/static/css/home.css">
-{% endblock %}
-
-{% block content %}
-<section class="hero">
-    <h1>Telegram Music</h1>
-    <p>Слушай любую музыку бесплатно</p>
-    
-    <!-- Поиск музыки -->
-    <div class="search-container">
-        <input type="text" id="searchInput" placeholder="Найди любую музыку..." class="search-input">
-        <button onclick="searchMusic()" class="search-btn">Поиск</button>
-    </div>
-</section>
-
-<!-- Популярная музыка -->
-<section class="popular-section">
-    <h2 class="section-title">🎵 Популярные треки</h2>
-    <div id="popularMusic" class="music-grid">
-        <div class="loading">Загрузка музыки...</div>
-    </div>
-</section>
-
-<!-- Результаты поиска -->
-<section id="searchSection" class="search-section" style="display: none;">
-    <h2 class="section-title">Результаты поиска</h2>
-    <div id="searchResults" class="music-grid"></div>
-</section>
-
-<!-- Аудиоплеер -->
-<div id="audioPlayer" class="audio-player" style="display: none;">
-    <audio id="audioElement" controls class="audio-element">
-        Ваш браузер не поддерживает аудио элементы.
-    </audio>
-    <div id="nowPlaying" class="now-playing"></div>
-</div>
-
 <script>
 // Загрузка популярной музыки
 async function loadPopularMusic() {
@@ -64,6 +24,70 @@ async function loadPopularMusic() {
         console.error('Error loading popular music:', error);
         document.getElementById('popularMusic').innerHTML = '<div class="error">Ошибка загрузки музыки</div>';
     }
+}
+
+// Создание карточки трека
+function createSongCard(song) {
+    const safeTitle = song.title.replace(/"/g, '\\"');
+    const safeArtist = song.artist.replace(/"/g, '\\"');
+    
+    // Форматируем размер файла
+    const fileSize = song.file_size ? formatFileSize(song.file_size) : '';
+    
+    return `
+        <div class="song-card" onclick="playSong('${song.id}', '${safeArtist}', '${safeTitle}')">
+            <div class="song-image">
+                ${song.thumbnail ? 
+                    `<img src="${song.thumbnail}" alt="${song.title}" class="song-thumbnail">` :
+                    `<div class="song-placeholder">🎵</div>`
+                }
+            </div>
+            <div class="song-info">
+                <h3 class="song-title">${song.title}</h3>
+                <p class="song-artist">${song.artist}</p>
+                <div class="song-meta">
+                    <span class="duration">${formatDuration(song.duration)}</span>
+                    ${fileSize ? `<span class="file-size">${fileSize}</span>` : ''}
+                    ${song.downloads ? `<span class="downloads">⬇️ ${song.downloads}</span>` : ''}
+                </div>
+            </div>
+            <button class="play-btn">▶</button>
+        </div>
+    `;
+}
+
+// Форматирование размера файла
+function formatFileSize(bytes) {
+    if (!bytes) return '';
+    const mb = bytes / (1024 * 1024);
+    return mb.toFixed(1) + ' MB';
+}
+
+// Остальные функции остаются такими же
+function formatDuration(seconds) {
+    if (!seconds) return '--:--';
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+// Воспроизведение музыки
+function playSong(itemId, artist, title) {
+    const audioPlayer = document.getElementById('audioPlayer');
+    const audioElement = document.getElementById('audioElement');
+    const nowPlaying = document.getElementById('nowPlaying');
+    
+    // Показываем плеер
+    audioPlayer.style.display = 'block';
+    
+    // Устанавливаем источник музыки (ПОЛНЫЙ ТРЕК)
+    audioElement.src = `/music/stream/${itemId}`;
+    
+    // Показываем что играет
+    nowPlaying.textContent = `Сейчас играет: ${artist} - ${title}`;
+    
+    // Автовоспроизведение
+    audioElement.play().catch(e => console.log('Autoplay blocked:', e));
 }
 
 // Поиск музыки
@@ -99,59 +123,6 @@ async function searchMusic() {
     }
 }
 
-// Создание карточки трека
-function createSongCard(song) {
-    const safeTitle = song.title.replace(/"/g, '\\"');
-    const safeArtist = song.artist.replace(/"/g, '\\"');
-    
-    return `
-        <div class="song-card" onclick="playSong('${song.id}', '${safeArtist}', '${safeTitle}')">
-            <div class="song-image">
-                ${song.thumbnail ? 
-                    `<img src="${song.thumbnail}" alt="${song.title}" class="song-thumbnail">` :
-                    `<div class="song-placeholder">🎵</div>`
-                }
-            </div>
-            <div class="song-info">
-                <h3 class="song-title">${song.title}</h3>
-                <p class="song-artist">${song.artist}</p>
-                <div class="song-meta">
-                    <span class="duration">${formatDuration(song.duration)}</span>
-                    <span class="preview-badge">30s preview</span>
-                </div>
-            </div>
-            <button class="play-btn">▶</button>
-        </div>
-    `;
-}
-
-// Воспроизведение музыки
-function playSong(trackId, artist, title) {
-    const audioPlayer = document.getElementById('audioPlayer');
-    const audioElement = document.getElementById('audioElement');
-    const nowPlaying = document.getElementById('nowPlaying');
-    
-    // Показываем плеер
-    audioPlayer.style.display = 'block';
-    
-    // Устанавливаем источник музыки (30-секундный превью)
-    audioElement.src = `/music/stream/${trackId}`;
-    
-    // Показываем что играет
-    nowPlaying.textContent = `Сейчас играет: ${artist} - ${title} (30s preview)`;
-    
-    // Автовоспроизведение
-    audioElement.play().catch(e => console.log('Autoplay blocked:', e));
-}
-
-// Форматирование длительности
-function formatDuration(seconds) {
-    if (!seconds) return '--:--';
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-}
-
 // Поиск при нажатии Enter
 document.getElementById('searchInput').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
@@ -162,4 +133,3 @@ document.getElementById('searchInput').addEventListener('keypress', function(e) 
 // Загружаем популярную музыку при загрузке страницы
 document.addEventListener('DOMContentLoaded', loadPopularMusic);
 </script>
-{% endblock %}
