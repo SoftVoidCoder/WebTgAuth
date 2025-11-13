@@ -51,57 +51,43 @@ async def get_popular_tracks():
         if not yandex_client:
             return JSONResponse({"error": "Сервис недоступен"}, status_code=503)
         
-        # Получаем чарт
-        chart = yandex_client.chart()
-        if not chart or not chart.chart:
+        # Ищем популярные треки через поиск
+        search_result = yandex_client.search("популярные треки", type_="track")
+        
+        if not search_result or not search_result.tracks:
             return {"tracks": []}
         
         tracks_data = []
-        for track_short in chart.chart.tracks[:20]:
-            # Получаем полный трек по ID
-            track_id = track_short.id
-            album_id = track_short.albums[0].id if track_short.albums else None
+        for track in search_result.tracks.results[:20]:
+            # Безопасно получаем данные как в поиске
+            album_id = None
+            if hasattr(track, 'albums') and track.albums and len(track.albums) > 0:
+                album_id = track.albums[0].id
+            elif hasattr(track, 'album') and track.album:
+                album_id = track.album.id
             
-            # Получаем полную информацию о треке
-            if album_id:
-                full_tracks = yandex_client.tracks([f"{track_id}:{album_id}"])
-            else:
-                full_tracks = yandex_client.tracks([track_id])
+            track_id = f"{track.id}_{album_id}" if album_id else str(track.id)
             
-            if full_tracks and full_tracks[0]:
-                full_track = full_tracks[0]
-                track_info = {
-                    "id": f"{full_track.id}_{full_track.albums[0].id}" if full_track.albums else str(full_track.id),
-                    "title": full_track.title,
-                    "artists": [artist.name for artist in full_track.artists],
-                    "cover_uri": f"https://{full_track.cover_uri.replace('%%', '300x300')}" if full_track.cover_uri else None,
-                    "album": full_track.albums[0].title if full_track.albums else "Неизвестный альбом"
-                }
-                tracks_data.append(track_info)
+            album_title = "Неизвестный альбом"
+            if hasattr(track, 'albums') and track.albums and len(track.albums) > 0:
+                album_title = track.albums[0].title
+            elif hasattr(track, 'album') and track.album:
+                album_title = track.album.title
+            
+            track_info = {
+                "id": track_id,
+                "title": track.title,
+                "artists": [artist.name for artist in track.artists],
+                "cover_uri": f"https://{track.cover_uri.replace('%%', '300x300')}" if track.cover_uri else None,
+                "album": album_title
+            }
+            tracks_data.append(track_info)
         
         return {"tracks": tracks_data}
         
     except Exception as e:
         print(f"Error getting popular tracks: {e}")
-        # Возвращаем тестовые данные
-        return {
-            "tracks": [
-                {
-                    "id": "10994777_1193829",
-                    "title": "Тестовый трек 1",
-                    "artists": ["Исполнитель 1"],
-                    "cover_uri": None,
-                    "album": "Альбом 1"
-                },
-                {
-                    "id": "40133452_5206873",
-                    "title": "Тестовый трек 2", 
-                    "artists": ["Исполнитель 2"],
-                    "cover_uri": None,
-                    "album": "Альбом 2"
-                }
-            ]
-        }
+        return {"tracks": []}
 
 @app.get("/profile")
 async def profile(request: Request, current_user: dict = Depends(get_current_user)):
