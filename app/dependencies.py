@@ -1,14 +1,15 @@
 import json
-from fastapi import Request, Cookie, HTTPException
+from fastapi import Request, Cookie, HTTPException, Depends
 from sqlalchemy.orm import Session
-from . import crud
+from app.database import get_db
+from app import crud
 
 def get_current_user(
     request: Request,
     tg_user: str = Cookie(None),
-    db: Session = None
+    db: Session = Depends(get_db)
 ):
-    if not tg_user or not db:
+    if not tg_user:
         return None
     
     try:
@@ -18,5 +19,5 @@ def get_current_user(
             "telegram_data": telegram_data,
             "db_user": db_user
         }
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, Exception):
         return None

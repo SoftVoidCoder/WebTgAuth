@@ -3,7 +3,6 @@ from fastapi import FastAPI, Request, Depends
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
 
 from app.database import get_db, engine
 from app import models
@@ -28,7 +27,6 @@ BOT_USERNAME = os.getenv("BOT_USERNAME")
 @app.get("/")
 async def home(
     request: Request, 
-    db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
     user_data = current_user["telegram_data"] if current_user else None
@@ -44,7 +42,6 @@ async def home(
 @app.get("/profile")
 async def profile(
     request: Request,
-    db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
     if not current_user:
