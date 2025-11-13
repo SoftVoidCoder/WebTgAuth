@@ -132,3 +132,39 @@
         justify-content: center;
     }
 }
+
+
+.chart-wrapper {
+    height: 120px;
+    margin: 1rem 0;
+    position: relative;
+}
+
+.chart-wrapper canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.price-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 1rem 0;
+}
+
+.coin-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.coin-symbol {
+    color: #b0b0b0;
+    font-size: 0.8rem;
+}
+
+.market-cap {
+    color: #b0b0b0;
+    font-size: 0.8rem;
+    text-align: center;
+    margin-top: 0.5rem;
+}

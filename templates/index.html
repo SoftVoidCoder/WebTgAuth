@@ -2,7 +2,8 @@
 
 {% block head %}
 <link rel="stylesheet" href="/static/css/home.css">
-<script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/static/js/charts.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -24,157 +25,70 @@
 <section class="crypto-section">
     <h2 class="section-title">Топ криптовалюты</h2>
     
-    <!-- Навигация по графикам -->
-    <div class="chart-navigation">
-        <button class="chart-nav-btn active" data-symbol="BINANCE:BTCUSDT">BTC/USDT</button>
-        <button class="chart-nav-btn" data-symbol="BINANCE:ETHUSDT">ETH/USDT</button>
-        <button class="chart-nav-btn" data-symbol="BINANCE:TONUSDT">TON/USDT</button>
-    </div>
-    
-    <!-- Основной график -->
-    <div class="main-chart-container">
-        <div id="tradingview_chart"></div>
-    </div>
-    
-    <!-- Быстрый обзор монет -->
-    <div class="crypto-overview">
-        <div class="crypto-card" data-symbol="BINANCE:BTCUSDT">
-            <div class="crypto-info">
-                <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png" alt="BTC" class="crypto-icon">
-                <div class="crypto-details">
-                    <h3>Bitcoin</h3>
-                    <span class="crypto-symbol">BTC/USDT</span>
-                </div>
-            </div>
-            <div class="crypto-price">
-                <span class="price" id="btc-price">-</span>
-                <span class="change" id="btc-change">-</span>
-            </div>
-        </div>
-        
-        <div class="crypto-card" data-symbol="BINANCE:ETHUSDT">
-            <div class="crypto-info">
-                <img src="https://cryptologos.cc/logos/ethereum-eth-logo.png" alt="ETH" class="crypto-icon">
-                <div class="crypto-details">
-                    <h3>Ethereum</h3>
-                    <span class="crypto-symbol">ETH/USDT</span>
-                </div>
-            </div>
-            <div class="crypto-price">
-                <span class="price" id="eth-price">-</span>
-                <span class="change" id="eth-change">-</span>
-            </div>
-        </div>
-        
-        <div class="crypto-card" data-symbol="BINANCE:TONUSDT">
-            <div class="crypto-info">
-                <img src="https://cryptologos.cc/logos/toncoin-ton-logo.png" alt="TON" class="crypto-icon">
-                <div class="crypto-details">
-                    <h3>Toncoin</h3>
-                    <span class="crypto-symbol">TON/USDT</span>
-                </div>
-            </div>
-            <div class="crypto-price">
-                <span class="price" id="ton-price">-</span>
-                <span class="change" id="ton-change">-</span>
-            </div>
-        </div>
+    <div class="charts-container" id="cryptoContainer">
+        <div class="loading">Загрузка реальных данных...</div>
     </div>
 </section>
 
 <script>
-// Текущий активный график
-let currentChart = null;
-
-// Инициализация TradingView графика
-function initTradingView(symbol = 'BINANCE:BTCUSDT') {
-    if (currentChart) {
-        currentChart.remove();
-    }
-    
-    new TradingView.widget({
-        "autosize": true,
-        "symbol": symbol,
-        "interval": "15",
-        "timezone": "Europe/Moscow",
-        "theme": "dark",
-        "style": "1",
-        "locale": "ru",
-        "toolbar_bg": "#0f0f0f",
-        "enable_publishing": false,
-        "allow_symbol_change": false,
-        "container_id": "tradingview_chart",
-        "studies": [
-            "RSI@tv-basicstudies",
-            "MACD@tv-basicstudies"
-        ],
-        "show_popup_button": true,
-        "popup_width": "1000",
-        "popup_height": "650"
-    });
-    
-    currentChart = symbol;
-}
-
-// Загрузка цен в реальном времени
-async function loadRealTimePrices() {
+// Загружаем данные криптовалют и графики
+async function loadCryptoData() {
     try {
         const response = await fetch('/crypto/prices');
         const data = await response.json();
         
+        const container = document.getElementById('cryptoContainer');
+        container.innerHTML = '';
+        
         data.cryptos.forEach(crypto => {
-            const priceElement = document.getElementById(`${crypto.symbol.toLowerCase()}-price`);
-            const changeElement = document.getElementById(`${crypto.symbol.toLowerCase()}-change`);
+            const changeClass = crypto.price_change_percentage_24h >= 0 ? 'positive' : 'negative';
+            const changeSymbol = crypto.price_change_percentage_24h >= 0 ? '↗' : '↘';
             
-            if (priceElement && changeElement) {
-                priceElement.textContent = `$${crypto.current_price.toLocaleString()}`;
-                
-                const change = crypto.price_change_percentage_24h;
-                changeElement.textContent = `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`;
-                changeElement.className = `change ${change >= 0 ? 'positive' : 'negative'}`;
-            }
+            const cryptoCard = `
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <img src="${crypto.image}" alt="${crypto.name}" class="coin-logo">
+                        <div class="coin-info">
+                            <span class="coin-name">${crypto.name}</span>
+                            <span class="coin-symbol">${crypto.symbol}</span>
+                        </div>
+                    </div>
+                    <div class="price-section">
+                        <div class="coin-price">$${crypto.current_price.toLocaleString()}</div>
+                        <div class="price-change ${changeClass}">
+                            ${changeSymbol} ${Math.abs(crypto.price_change_percentage_24h).toFixed(2)}%
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="chart-${crypto.symbol.toLowerCase()}"></canvas>
+                    </div>
+                    <div class="market-cap">
+                        Market Cap: $${(crypto.market_cap / 1000000000).toFixed(2)}B
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML += cryptoCard;
+            
+            // Загружаем график для этой крипты
+            loadChartData(crypto.id, crypto.symbol);
         });
         
     } catch (error) {
-        console.error('Error loading prices:', error);
+        console.error('Error loading crypto data:', error);
+        document.getElementById('cryptoContainer').innerHTML = '<div class="error">Ошибка загрузки данных</div>';
     }
 }
 
-// Обработчики навигации
+// Обновляем данные каждые 2 минуты
+function startAutoRefresh() {
+    setInterval(loadCryptoData, 120000);
+}
+
+// Загружаем данные при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-    // Инициализируем график BTC по умолчанию
-    initTradingView('BINANCE:BTCUSDT');
-    
-    // Загружаем цены
-    loadRealTimePrices();
-    
-    // Обновляем цены каждые 30 секунд
-    setInterval(loadRealTimePrices, 30000);
-    
-    // Навигация по графикам
-    document.querySelectorAll('.chart-nav-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            // Убираем активный класс у всех кнопок
-            document.querySelectorAll('.chart-nav-btn').forEach(b => b.classList.remove('active'));
-            // Добавляем активный класс текущей кнопке
-            this.classList.add('active');
-            // Меняем график
-            initTradingView(this.dataset.symbol);
-        });
-    });
-    
-    // Клик по карточке крипты
-    document.querySelectorAll('.crypto-card').forEach(card => {
-        card.addEventListener('click', function() {
-            const symbol = this.dataset.symbol;
-            // Активируем соответствующую кнопку
-            document.querySelectorAll('.chart-nav-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.symbol === symbol);
-            });
-            // Меняем график
-            initTradingView(symbol);
-        });
-    });
+    loadCryptoData();
+    startAutoRefresh();
 });
 </script>
 {% endblock %}
