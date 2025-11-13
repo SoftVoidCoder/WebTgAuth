@@ -5,6 +5,7 @@ from .database import Base
 
 class User(Base):
     __tablename__ = "users"
+    __table_args__ = {'extend_existing': True}  # ← ДОБАВИТЬ ЭТУ СТРОКУ
     
     id = Column(Integer, primary_key=True, index=True)
     telegram_id = Column(Integer, unique=True, index=True, nullable=False)
@@ -15,10 +16,9 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-
-
 class Gift(Base):
     __tablename__ = "gifts"
+    __table_args__ = {'extend_existing': True}  # ← ДОБАВИТЬ ЭТУ СТРОКУ
     
     id = Column(Integer, primary_key=True)
     seller_id = Column(Integer, ForeignKey('users.id'))
@@ -32,16 +32,3 @@ class Gift(Base):
     
     # Связь с пользователем
     seller = relationship("User", backref="gifts")
-
-# Добавляем связь в модель User
-class User(Base):
-    __tablename__ = "users"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    telegram_id = Column(Integer, unique=True, index=True, nullable=False)
-    first_name = Column(String(255), nullable=False)
-    last_name = Column(String(255), nullable=True)
-    username = Column(String(255), nullable=True)
-    photo_url = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
