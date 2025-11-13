@@ -1,3 +1,43 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="/static/css/home.css">
+{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <h1>Telegram Music</h1>
+    <p>Слушай любую музыку бесплатно</p>
+    
+    <!-- Поиск музыки -->
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Найди любую музыку..." class="search-input">
+        <button onclick="searchMusic()" class="search-btn">Поиск</button>
+    </div>
+</section>
+
+<!-- Популярная музыка -->
+<section class="popular-section">
+    <h2 class="section-title">🎵 Популярные треки</h2>
+    <div id="popularMusic" class="music-grid">
+        <div class="loading">Загрузка музыки...</div>
+    </div>
+</section>
+
+<!-- Результаты поиска -->
+<section id="searchSection" class="search-section" style="display: none;">
+    <h2 class="section-title">Результаты поиска</h2>
+    <div id="searchResults" class="music-grid"></div>
+</section>
+
+<!-- Аудиоплеер -->
+<div id="audioPlayer" class="audio-player" style="display: none;">
+    <audio id="audioElement" controls class="audio-element">
+        Ваш браузер не поддерживает аудио элементы.
+    </audio>
+    <div id="nowPlaying" class="now-playing"></div>
+</div>
+
 <script>
 // Загрузка популярной музыки
 async function loadPopularMusic() {
@@ -133,3 +173,4 @@ document.getElementById('searchInput').addEventListener('keypress', function(e) 
 // Загружаем популярную музыку при загрузке страницы
 document.addEventListener('DOMContentLoaded', loadPopularMusic);
 </script>
+{% endblock %}
