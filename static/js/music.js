@@ -1,3 +1,6 @@
+let currentTrackId = null;
+let isPlaying = false;
+
 // Загрузка и воспроизведение музыки
 async function loadAndPlayMusic() {
     const musicContainer = document.getElementById('musicContainer');
@@ -9,7 +12,6 @@ async function loadAndPlayMusic() {
     listenBtn.disabled = true;
     
     try {
-        // Получаем популярные треки
         const response = await fetch('/api/popular');
         const data = await response.json();
         
@@ -20,8 +22,8 @@ async function loadAndPlayMusic() {
             
             // Добавляем треки в сетку
             tracksGrid.innerHTML = '';
-            data.tracks.forEach(track => {
-                const trackCard = createTrackCard(track);
+            data.tracks.forEach((track, index) => {
+                const trackCard = createTrackCard(track, index === 0);
                 tracksGrid.appendChild(trackCard);
             });
             
@@ -30,24 +32,26 @@ async function loadAndPlayMusic() {
             await playTrackById(firstTrack.id, firstTrack.title, firstTrack.artists.join(', '));
             
         } else {
-            alert('Не удалось загрузить треки');
-            listenBtn.innerHTML = '🎵 Слушать музыку';
-            listenBtn.disabled = false;
+            throw new Error(data.error || 'Не удалось загрузить треки');
         }
         
     } catch (error) {
         console.error('Ошибка:', error);
-        alert('Ошибка при загрузке музыки');
+        alert('Ошибка при загрузке музыки: ' + error.message);
         listenBtn.innerHTML = '🎵 Слушать музыку';
         listenBtn.disabled = false;
     }
 }
 
 // Создание карточки трека
-function createTrackCard(track) {
+function createTrackCard(track, isFirst = false) {
     const card = document.createElement('div');
     card.className = 'track-card';
     card.setAttribute('data-track-id', track.id);
+    
+    if (isFirst) {
+        card.classList.add('playing');
+    }
     
     card.innerHTML = `
         <div class="track-image">
@@ -63,7 +67,9 @@ function createTrackCard(track) {
             <p class="track-album">${track.album}</p>
         </div>
         
-        <button class="play-btn" onclick="playTrack(this)">▶</button>
+        <button class="play-btn ${isFirst ? 'playing' : ''}" onclick="playTrack(this)">
+            ${isFirst ? '⏸️' : '▶'}
+        </button>
     `;
     
     return card;
@@ -75,8 +81,15 @@ async function playTrackById(trackId, title, artist) {
     const audioElement = document.getElementById('audioElement');
     const nowPlaying = document.getElementById('nowPlaying');
     
+    // Обновляем текущий трек
+    currentTrackId = trackId;
+    
+    // Показываем плеер
     audioPlayer.style.display = 'block';
     nowPlaying.textContent = `Сейчас играет: ${artist} - ${title}`;
+    
+    // Обновляем кнопки на всех карточках
+    updatePlayButtons(trackId);
     
     try {
         const response = await fetch(`/music/track/${trackId}`);
@@ -85,12 +98,26 @@ async function playTrackById(trackId, title, artist) {
         if (data.download_url) {
             audioElement.src = data.download_url;
             await audioElement.play();
+            isPlaying = true;
+            
+            // Слушаем события аудио
+            audioElement.onpause = () => {
+                isPlaying = false;
+                updatePlayButtons(null);
+            };
+            
+            audioElement.onplay = () => {
+                isPlaying = true;
+                updatePlayButtons(trackId);
+            };
+            
         } else {
-            alert(data.error || 'Не удалось загрузить трек');
+            throw new Error(data.error || 'Не удалось загрузить трек');
         }
+        
     } catch (error) {
         console.error('Ошибка:', error);
-        alert('Ошибка при загрузке трека');
+        alert('Ошибка при загрузке трека: ' + error.message);
     }
 }
 
@@ -101,5 +128,38 @@ async function playTrack(button) {
     const trackTitle = trackCard.querySelector('.track-title').textContent;
     const trackArtist = trackCard.querySelector('.track-artist').textContent;
     
-    await playTrackById(trackId, trackTitle, trackArtist);
+    const audioElement = document.getElementById('audioElement');
+    
+    // Если кликаем на текущий трек - пауза/плей
+    if (trackId === currentTrackId) {
+        if (isPlaying) {
+            await audioElement.pause();
+        } else {
+            await audioElement.play();
+        }
+    } else {
+        // Иначе играем новый трек
+        await playTrackById(trackId, trackTitle, trackArtist);
+    }
+}
+
+// Обновление кнопок воспроизведения
+function updatePlayButtons(playingTrackId) {
+    const allTrackCards = document.querySelectorAll('.track-card');
+    const audioElement = document.getElementById('audioElement');
+    
+    allTrackCards.forEach(card => {
+        const playBtn = card.querySelector('.play-btn');
+        const cardTrackId = card.dataset.trackId;
+        
+        if (cardTrackId === playingTrackId && !audioElement.paused) {
+            card.classList.add('playing');
+            playBtn.classList.add('playing');
+            playBtn.innerHTML = '⏸️';
+        } else {
+            card.classList.remove('playing');
+            playBtn.classList.remove('playing');
+            playBtn.innerHTML = '▶';
+        }
+    });
 }

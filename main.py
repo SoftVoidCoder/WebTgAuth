@@ -44,31 +44,36 @@ async def home(request: Request, current_user: dict = Depends(get_current_user))
         "bot_username": BOT_USERNAME
     })
 
-# API для получения популярных треков
+# В main.py заменяем эндпоинт /api/popular
 @app.get("/api/popular")
 async def get_popular_tracks():
     try:
         if not yandex_client:
             return JSONResponse({"error": "Сервис недоступен"}, status_code=503)
         
+        # Получаем чарт
         chart = yandex_client.chart()
         if not chart or not chart.chart:
             return {"tracks": []}
         
         tracks_data = []
-        for track in chart.chart.tracks[:20]:
+        for track_short in chart.chart.tracks[:20]:
+            # Получаем полную информацию о треке
+            track_id = f"{track_short.id}_{track_short.albums[0].id}" if track_short.albums else str(track_short.id)
+            
             track_info = {
-                "id": f"{track.id}_{track.albums[0].id}" if track.albums else str(track.id),
-                "title": track.title,
-                "artists": [artist.name for artist in track.artists],
-                "cover_uri": f"https://{track.cover_uri.replace('%%', '300x300')}" if track.cover_uri else None,
-                "album": track.albums[0].title if track.albums else "Неизвестный альбом"
+                "id": track_id,
+                "title": track_short.title,
+                "artists": [artist.name for artist in track_short.artists],
+                "cover_uri": f"https://{track_short.cover_uri.replace('%%', '300x300')}" if track_short.cover_uri else None,
+                "album": track_short.albums[0].title if track_short.albums else "Неизвестный альбом"
             }
             tracks_data.append(track_info)
         
         return {"tracks": tracks_data}
         
     except Exception as e:
+        print(f"Error getting popular tracks: {e}")
         return JSONResponse({"error": str(e)}, status_code=500)
 
 @app.get("/profile")

@@ -16,7 +16,7 @@
                 type="text" 
                 name="query" 
                 class="search-input" 
-                placeholder="Исполнитель, трек или альбом..."
+                placeholder="Найти исполнителя, трек или альбом..."
                 value="{{ search_query if search_query }}"
                 autofocus
             >
@@ -39,9 +39,7 @@
                     <div class="artist-placeholder">{{ artist.name[0] }}</div>
                     {% endif %}
                 </div>
-                <div class="artist-info">
-                    <h3 class="artist-name">{{ artist.name }}</h3>
-                </div>
+                <h3 class="artist-name">{{ artist.name }}</h3>
             </div>
             {% endfor %}
         </div>
@@ -69,6 +67,7 @@
                         {{ artist.name }}{% if not loop.last %}, {% endif %}
                         {% endfor %}
                     </p>
+                    <p class="track-album">{{ track.albums[0].title if track.albums else 'Неизвестный альбом' }}</p>
                 </div>
                 
                 <button class="play-btn" onclick="playTrack(this)">▶</button>
@@ -81,6 +80,7 @@
     {% if not tracks and not artists %}
     <div class="no-results">
         <p>По запросу "{{ search_query }}" ничего не найдено</p>
+        <p style="margin-top: 1rem; color: #666;">Попробуйте изменить запрос</p>
     </div>
     {% endif %}
 {% endif %}
