@@ -1,15 +1,15 @@
-/* music.css - компактный плеер для главной */
+/* music.css */
 .audio-player {
     position: fixed;
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
     width: 90%;
-    max-width: 400px;
+    max-width: 500px;
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(20px);
-    border-radius: 12px;
-    padding: 12px;
+    border-radius: 15px;
+    padding: 15px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.1);
     z-index: 1000;
@@ -18,20 +18,20 @@
 .player-main {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 15px;
 }
 
 .player-info {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     flex: 1;
     min-width: 0;
 }
 
 .track-cover {
-    width: 45px;
-    height: 45px;
+    width: 50px;
+    height: 50px;
     border-radius: 8px;
     overflow: hidden;
     flex-shrink: 0;
@@ -50,7 +50,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1rem;
+    font-size: 1.2rem;
 }
 
 .track-details {
@@ -59,7 +59,7 @@
 }
 
 .track-title {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     font-weight: 600;
     color: white;
     margin-bottom: 2px;
@@ -69,7 +69,7 @@
 }
 
 .track-artist {
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.7);
     white-space: nowrap;
     overflow: hidden;
@@ -79,17 +79,12 @@
 .like-btn {
     background: none;
     border: none;
-    font-size: 1.1rem;
+    font-size: 1.3rem;
     cursor: pointer;
-    padding: 4px;
+    padding: 5px;
     border-radius: 50%;
     transition: all 0.3s ease;
     flex-shrink: 0;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .like-btn.liked {
@@ -103,7 +98,7 @@
 .player-controls {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     flex-shrink: 0;
 }
 
@@ -111,8 +106,8 @@
     background: rgba(255, 255, 255, 0.1);
     border: none;
     border-radius: 50%;
-    width: 35px;
-    height: 35px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -130,17 +125,17 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-left: 8px;
+    margin-left: 10px;
 }
 
 .volume-control svg {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     opacity: 0.7;
 }
 
 .volume-slider {
-    width: 50px;
+    width: 60px;
     height: 4px;
     background: rgba(255, 255, 255, 0.3);
     border-radius: 2px;
@@ -155,8 +150,8 @@
 
 .volume-slider::-webkit-slider-thumb {
     appearance: none;
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
     background: #ff3838;
     border-radius: 50%;
     cursor: pointer;
@@ -164,41 +159,6 @@
 
 .audio-element {
     display: none;
-}
-
-/* Адаптивность */
-@media (max-width: 768px) {
-    .audio-player {
-        width: 95%;
-        bottom: 10px;
-        padding: 10px;
-    }
-    
-    .player-main {
-        gap: 8px;
-    }
-    
-    .track-cover {
-        width: 40px;
-        height: 40px;
-    }
-    
-    .track-title {
-        font-size: 0.8rem;
-    }
-    
-    .track-artist {
-        font-size: 0.7rem;
-    }
-    
-    .control-btn {
-        width: 32px;
-        height: 32px;
-    }
-    
-    .volume-slider {
-        width: 40px;
-    }
 }
 
 /* Кнопка слушать/пауза на главной */
@@ -341,4 +301,285 @@
 .play-btn:hover {
     transform: scale(1.1);
     box-shadow: 0 4px 15px rgba(255, 56, 56, 0.4);
+}
+
+/* Для страницы профиля */
+.track-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.track-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.track-item-image {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.track-item-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.track-item-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, #ff6b6b, #ff4757);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.track-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.track-item-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.track-item-artist {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.track-item-album {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.track-item-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.play-item-btn, .remove-item-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 6px;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: white;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.play-item-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.remove-item-btn:hover {
+    background: rgba(255, 59, 92, 0.2);
+    transform: scale(1.1);
+}
+
+/* Компактный плеер для профиля */
+.compact-player {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 400px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 1000;
+}
+
+.compact-player-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.compact-track-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+}
+
+.compact-cover {
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.compact-cover-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.compact-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, #ff6b6b, #ff4757);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+}
+
+.compact-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.compact-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.compact-artist {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.7);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.compact-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.compact-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: white;
+}
+
+.compact-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.compact-like-btn {
+    background: none;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.compact-like-btn.liked {
+    color: #ff3838;
+}
+
+.compact-like-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .audio-player {
+        width: 95%;
+        bottom: 10px;
+        padding: 12px;
+    }
+    
+    .player-main {
+        gap: 10px;
+    }
+    
+    .track-cover {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .control-btn {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .volume-slider {
+        width: 50px;
+    }
+    
+    .tracks-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+    }
+    
+    .track-image {
+        height: 140px;
+    }
+    
+    .compact-player {
+        width: 95%;
+        bottom: 10px;
+        padding: 10px;
+    }
+    
+    .compact-cover {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .compact-btn {
+        width: 28px;
+        height: 28px;
+    }
 }
