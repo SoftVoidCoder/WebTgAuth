@@ -334,19 +334,19 @@ async def get_similar_tracks(query: str = Query(...)):
         if not yandex_client:
             return {"tracks": []}
         
-        print(f"Searching similar tracks for: {query}")
+        print(f"🔍 Searching similar tracks for: {query}")
         search_result = yandex_client.search(query, type_="track")
         
         if not search_result or not search_result.tracks:
             return {"tracks": []}
         
-        # Берем случайные треки из результатов
+        # Берем треки из результатов поиска
         all_tracks = search_result.tracks.results
         random.shuffle(all_tracks)
         
         tracks_data = []
-        for track in all_tracks[:15]:
-            # Такой же код обработки треков как в /api/popular
+        for track in all_tracks[:20]:  # Берем больше треков для разнообразия
+            # Безопасно получаем данные
             album_id = None
             if hasattr(track, 'albums') and track.albums and len(track.albums) > 0:
                 album_id = track.albums[0].id
@@ -361,12 +361,14 @@ async def get_similar_tracks(query: str = Query(...)):
             elif hasattr(track, 'album') and track.album:
                 album_title = track.album.title
             
+            # Артисты
             artists = []
             if hasattr(track, 'artists') and track.artists:
                 for artist in track.artists:
                     if hasattr(artist, 'name'):
                         artists.append(artist.name)
             
+            # Обложка
             cover_uri = None
             if hasattr(track, 'cover_uri') and track.cover_uri:
                 cover_uri = f"https://{track.cover_uri.replace('%%', '300x300')}"
@@ -380,9 +382,9 @@ async def get_similar_tracks(query: str = Query(...)):
             }
             tracks_data.append(track_info)
         
-        print(f"Found {len(tracks_data)} similar tracks")
+        print(f"✅ Found {len(tracks_data)} similar tracks for '{query}'")
         return {"tracks": tracks_data}
         
     except Exception as e:
-        print(f"Error getting similar tracks: {e}")
+        print(f"❌ Error getting similar tracks: {e}")
         return {"tracks": []}
