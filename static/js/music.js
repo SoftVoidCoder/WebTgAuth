@@ -23,11 +23,21 @@ function setupAudioEvents() {
     audioElement.onpause = () => {
         isPlaying = false;
         updatePlayButton();
+        const listenBtn = document.querySelector('.listen-btn');
+        if (listenBtn && audioElement.src) {
+            listenBtn.innerHTML = '🎵 Продолжить';
+            listenBtn.classList.remove('playing');
+        }
     };
     
     audioElement.onplay = () => {
         isPlaying = true;
         updatePlayButton();
+        const listenBtn = document.querySelector('.listen-btn');
+        if (listenBtn) {
+            listenBtn.innerHTML = '⏸️ Пауза';
+            listenBtn.classList.add('playing');
+        }
     };
 }
 
@@ -61,8 +71,24 @@ async function loadUserPreferences() {
 // Запуск радио с учетом предпочтений
 async function startRadio() {
     const listenBtn = document.querySelector('.listen-btn');
-    const audioPlayer = document.getElementById('audioPlayer');
     
+    // Если музыка уже играет - ставим на паузу
+    if (isPlaying) {
+        audioElement.pause();
+        listenBtn.innerHTML = '🎵 Продолжить';
+        listenBtn.classList.remove('playing');
+        return;
+    }
+    
+    // Если музыка на паузе - продолжаем
+    if (audioElement.src && !isPlaying) {
+        await audioElement.play();
+        listenBtn.innerHTML = '⏸️ Пауза';
+        listenBtn.classList.add('playing');
+        return;
+    }
+    
+    // Запускаем новое радио
     listenBtn.innerHTML = '🔄 Анализируем ваши вкусы...';
     listenBtn.disabled = true;
     
@@ -76,7 +102,10 @@ async function startRadio() {
             await loadNewTracks();
         }
         
-        listenBtn.style.display = 'none';
+        const audioPlayer = document.getElementById('audioPlayer');
+        listenBtn.innerHTML = '⏸️ Пауза';
+        listenBtn.disabled = false;
+        listenBtn.classList.add('playing');
         audioPlayer.style.display = 'block';
         
         if (tracksList.length > 0) {
@@ -85,9 +114,9 @@ async function startRadio() {
         
     } catch (error) {
         console.error('Ошибка:', error);
-        alert('Ошибка при загрузке музыки');
         listenBtn.innerHTML = '🎵 Слушать музыку';
         listenBtn.disabled = false;
+        listenBtn.classList.remove('playing');
     }
 }
 
@@ -308,13 +337,22 @@ async function playTrackById(trackId, title, artist, coverUri, trackData = null)
 
 // Переключение воспроизведения/паузы
 function togglePlayPause() {
+    const listenBtn = document.querySelector('.listen-btn');
+    
     if (isPlaying) {
         audioElement.pause();
+        if (listenBtn) {
+            listenBtn.innerHTML = '🎵 Продолжить';
+            listenBtn.classList.remove('playing');
+        }
     } else {
         audioElement.play();
+        if (listenBtn) {
+            listenBtn.innerHTML = '⏸️ Пауза';
+            listenBtn.classList.add('playing');
+        }
     }
 }
-
 // Обновление кнопки воспроизведения
 function updatePlayButton() {
     const playPauseBtn = document.getElementById('playPauseBtn');
