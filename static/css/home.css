@@ -1,26 +1,113 @@
-/* home.css */
+/* home.css - только для главной страницы */
+.home-body {
+    background: linear-gradient(135deg, #1a0b0b 0%, #2d1a1a 50%, #1a0b0b 100%) !important;
+    position: relative;
+    overflow-x: hidden;
+    min-height: 100vh;
+}
+
+/* Анимированные частицы только на главной */
+.home-particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.home-particle {
+    position: absolute;
+    background: rgba(255, 59, 92, 0.1);
+    border-radius: 50%;
+    animation: float-particle 15s infinite linear;
+}
+
+.home-particle:nth-child(1) { width: 4px; height: 4px; top: 20%; left: 10%; animation-delay: 0s; }
+.home-particle:nth-child(2) { width: 6px; height: 6px; top: 60%; left: 80%; animation-delay: 2s; }
+.home-particle:nth-child(3) { width: 3px; height: 3px; top: 80%; left: 20%; animation-delay: 4s; }
+.home-particle:nth-child(4) { width: 5px; height: 5px; top: 30%; left: 70%; animation-delay: 6s; }
+.home-particle:nth-child(5) { width: 4px; height: 4px; top: 50%; left: 40%; animation-delay: 8s; }
+.home-particle:nth-child(6) { width: 6px; height: 6px; top: 70%; left: 60%; animation-delay: 10s; }
+.home-particle:nth-child(7) { width: 3px; height: 3px; top: 10%; left: 30%; animation-delay: 12s; }
+.home-particle:nth-child(8) { width: 5px; height: 5px; top: 40%; left: 90%; animation-delay: 14s; }
+
+@keyframes float-particle {
+    0%, 100% { 
+        transform: translate(0, 0) rotate(0deg);
+        opacity: 0;
+    }
+    10% { opacity: 1; }
+    50% { 
+        transform: translate(100px, -50px) rotate(180deg);
+        opacity: 0.5;
+    }
+    90% { opacity: 0; }
+}
+
+/* Пульсирующий градиент только на главной */
+.home-body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(255, 59, 92, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(139, 0, 0, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(220, 20, 60, 0.05) 0%, transparent 50%);
+    animation: pulse-gradient 8s ease-in-out infinite;
+    z-index: -2;
+}
+
+@keyframes pulse-gradient {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
 .hero {
     text-align: center;
-    padding: 80px 20px;
+    padding: 60px 20px;
     position: relative;
-    overflow: hidden;
-    min-height: 80vh;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    background: transparent;
 }
 
-/* Анимированный фон */
-.hero::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    z-index: -2;
+.hero h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(45deg, #ff6b6b, #ff4757, #ff3838);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: text-glow 3s ease-in-out infinite alternate;
+}
+
+@keyframes text-glow {
+    from { 
+        text-shadow: 0 0 20px rgba(255, 107, 107, 0.3);
+        background-size: 100% 100%;
+    }
+    to { 
+        text-shadow: 0 0 30px rgba(255, 71, 87, 0.6), 0 0 40px rgba(255, 56, 56, 0.4);
+        background-size: 200% 200%;
+    }
+}
+
+.hero p {
+    font-size: 1.3rem;
+    margin-bottom: 3rem;
+    color: rgba(255, 255, 255, 0.8);
+    max-width: 500px;
+    line-height: 1.6;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 /* Волны анимация */
@@ -113,32 +200,7 @@
     50% { transform: translateY(-20px) rotate(180deg); }
 }
 
-.hero h1 {
-    font-size: 4rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
-    background: linear-gradient(45deg, #fff, #e0e7ff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
-    animation: glow 2s ease-in-out infinite alternate;
-}
-
-@keyframes glow {
-    from { text-shadow: 0 0 20px rgba(255, 255, 255, 0.3); }
-    to { text-shadow: 0 0 30px rgba(255, 255, 255, 0.6), 0 0 40px rgba(255, 255, 255, 0.4); }
-}
-
-.hero p {
-    font-size: 1.5rem;
-    margin-bottom: 3rem;
-    color: rgba(255, 255, 255, 0.9);
-    max-width: 600px;
-    line-height: 1.6;
-}
-
-/* Секция с кнопками */
+/* Кнопки в красном стиле */
 .listen-section {
     display: flex;
     gap: 20px;
@@ -148,16 +210,16 @@
 }
 
 .listen-btn {
-    background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+    background: linear-gradient(45deg, #ff3838, #ff6b6b);
     color: white;
     border: none;
-    padding: 18px 40px;
-    font-size: 1.3rem;
+    padding: 16px 35px;
+    font-size: 1.2rem;
     font-weight: 600;
-    border-radius: 50px;
+    border-radius: 25px;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 10px 30px rgba(255, 107, 107, 0.4);
+    box-shadow: 0 8px 25px rgba(255, 56, 56, 0.4);
     position: relative;
     overflow: hidden;
 }
@@ -178,8 +240,8 @@
 }
 
 .listen-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 15px 40px rgba(255, 107, 107, 0.6);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 35px rgba(255, 56, 56, 0.6);
 }
 
 .listen-btn:active {
@@ -187,24 +249,40 @@
 }
 
 .profile-btn {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     color: white;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    padding: 18px 40px;
-    font-size: 1.3rem;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    padding: 16px 35px;
+    font-size: 1.2rem;
     font-weight: 600;
-    border-radius: 50px;
+    border-radius: 25px;
     text-decoration: none;
     transition: all 0.3s ease;
     box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
 }
 
 .profile-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
     transform: translateY(-2px);
     box-shadow: 0 12px 30px rgba(255, 255, 255, 0.2);
+}
+
+/* Приглашение к авторизации */
+.auth-prompt {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(15px);
+    padding: 25px;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 2rem;
+}
+
+.auth-prompt p {
+    font-size: 1.1rem;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.9);
 }
 
 /* Анимация появления */
@@ -233,23 +311,6 @@
     }
 }
 
-/* Приглашение к авторизации */
-.auth-prompt {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    padding: 30px;
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    margin-top: 2rem;
-    animation: fadeInUp 0.8s ease-out 0.6s both;
-}
-
-.auth-prompt p {
-    font-size: 1.2rem;
-    margin: 0;
-    color: rgba(255, 255, 255, 0.9);
-}
-
 /* Адаптивность */
 @media (max-width: 768px) {
     .hero h1 {
@@ -257,7 +318,7 @@
     }
     
     .hero p {
-        font-size: 1.2rem;
+        font-size: 1.1rem;
         padding: 0 20px;
     }
     

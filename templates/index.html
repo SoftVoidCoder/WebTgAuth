@@ -6,8 +6,20 @@
 {% endblock %}
 
 {% block content %}
+<!-- Анимированные элементы только для главной -->
+<div class="home-particles">
+    <div class="home-particle"></div>
+    <div class="home-particle"></div>
+    <div class="home-particle"></div>
+    <div class="home-particle"></div>
+    <div class="home-particle"></div>
+    <div class="home-particle"></div>
+    <div class="home-particle"></div>
+    <div class="home-particle"></div>
+</div>
+
 <section class="hero">
-    <!-- Анимированный фон -->
+    <!-- Анимированные волны -->
     <div class="waves"></div>
     
     <!-- Плавающие элементы -->
@@ -87,4 +99,9 @@
 </div>
 
 <script src="/static/js/music.js"></script>
+
+<script>
+// Добавляем класс для body только на главной странице
+document.body.classList.add('home-body');
+</script>
 {% endblock %}
