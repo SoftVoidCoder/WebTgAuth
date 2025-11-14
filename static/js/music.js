@@ -188,8 +188,11 @@ async function checkIfLiked() {
 }
 
 // Переключение лайка
+// В функции toggleLike добавьте логирование
 async function toggleLike() {
     if (!currentTrackId || !currentTrackData) return;
+    
+    console.log('Toggling like for track:', currentTrackId, currentTrackData);
     
     const likeBtn = document.getElementById('likeBtn');
     
@@ -204,21 +207,35 @@ async function toggleLike() {
             if (data.status === 'unliked') {
                 likeBtn.innerHTML = '♡';
                 likeBtn.classList.remove('liked');
+                console.log('Track unliked');
             }
         } else {
-            // Добавляем лайк с полными данными трека
+            // УБЕДИТЕСЬ ЧТО ДАННЫЕ ПРАВИЛЬНЫЕ
+            const trackDataToSend = {
+                id: currentTrackId,
+                title: currentTrackData.title || 'Unknown',
+                artists: currentTrackData.artists || ['Unknown Artist'],
+                cover_uri: currentTrackData.cover_uri || null,
+                album: currentTrackData.album || 'Unknown Album'
+            };
+            
+            console.log('Sending track data:', trackDataToSend);
+            
             const response = await fetch(`/api/like/${currentTrackId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(currentTrackData)
+                body: JSON.stringify(trackDataToSend)
             });
+            
             const data = await response.json();
+            console.log('Like response:', data);
             
             if (data.status === 'liked') {
                 likeBtn.innerHTML = '❤️';
                 likeBtn.classList.add('liked');
+                console.log('Track liked successfully');
             }
         }
     } catch (error) {

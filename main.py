@@ -162,11 +162,36 @@ async def like_track(
         # Получаем данные трека из тела запроса
         track_data = await request.json()
         
+        print(f"🔵 LIKE TRACK REQUEST - User: {user_id}, Track ID: {track_id}")
+        print(f"🔵 Track data received: {track_data}")
+        
+        # Убедимся что ID трека правильный
+        if track_data.get('id') != track_id:
+            print(f"🟡 Fixing track ID: {track_data.get('id')} -> {track_id}")
+            track_data['id'] = track_id
+        
+        # Обрабатываем artists
+        artists = track_data.get('artists', [])
+        if isinstance(artists, list):
+            artists_str = ','.join(artists)
+        elif isinstance(artists, str):
+            artists_str = artists
+        else:
+            artists_str = str(artists)
+        
+        print(f"🟡 Processed artists: {artists_str}")
+        
         liked_track = crud.add_liked_track(db, user_id, track_data)
-        return {"status": "liked", "track_id": track_id}
+        
+        if liked_track:
+            print(f"✅ Track liked successfully! DB ID: {liked_track.id}")
+            return {"status": "liked", "track_id": track_id}
+        else:
+            print("❌ Track already liked or error")
+            return {"status": "already_liked", "track_id": track_id}
         
     except Exception as e:
-        print(f"Error liking track: {e}")
+        print(f"❌ Error liking track: {e}")
         return JSONResponse({"error": str(e)}, status_code=500)
 
 @app.get("/api/liked-tracks")
@@ -189,10 +214,11 @@ async def get_liked_tracks(current_user: dict = Depends(get_current_user)):
                 "album": track.track_album
             })
         
+        print(f"🟡 Returning {len(tracks_data)} liked tracks for user {user_id}")
         return {"tracks": tracks_data}
         
     except Exception as e:
-        print(f"Error getting liked tracks: {e}")
+        print(f"❌ Error getting liked tracks: {e}")
         return JSONResponse({"error": str(e)}, status_code=500)
 
 @app.delete("/api/unlike/{track_id}")
@@ -207,10 +233,18 @@ async def unlike_track(
     user_id = current_user["db_user"].id
     
     try:
+        print(f"🔵 UNLIKE TRACK - User: {user_id}, Track ID: {track_id}")
         success = crud.remove_liked_track(db, user_id, track_id)
-        return {"status": "unliked", "track_id": track_id}
+        
+        if success:
+            print(f"✅ Track unliked successfully!")
+            return {"status": "unliked", "track_id": track_id}
+        else:
+            print("❌ Track not found in likes")
+            return {"status": "not_found", "track_id": track_id}
         
     except Exception as e:
+        print(f"❌ Error unliking track: {e}")
         return JSONResponse({"error": str(e)}, status_code=500)
 
 @app.get("/api/is-liked/{track_id}")
@@ -226,7 +260,60 @@ async def is_track_liked(
     
     try:
         liked = crud.is_track_liked(db, user_id, track_id)
+        print(f"🟡 Check like - User: {user_id}, Track: {track_id}, Liked: {liked}")
         return {"liked": liked}
         
     except Exception as e:
+        print(f"❌ Error checking like: {e}")
         return JSONResponse({"error": str(e)}, status_code=500)
+
+# ДЕБАГ ЭНДПОИНТ
+@app.get("/debug/liked-tracks")
+async def debug_liked_tracks(current_user: dict = Depends(get_current_user)):
+    if not current_user:
+        return {"error": "Не авторизован"}
+    
+    db = next(get_db())
+    user_id = current_user["db_user"].id
+    
+    # Получаем все лайкнутые треки напрямую
+    liked_tracks = db.query(models.LikedTrack).filter(
+        models.LikedTrack.user_id == user_id
+    ).all()
+    
+    result = {
+        "user_id": user_id,
+        "total_liked": len(liked_tracks),
+        "tracks": [
+            {
+                "id": track.id,
+                "track_id": track.track_id,
+                "title": track.track_title,
+                "artists": track.track_artists,
+                "cover_uri": track.track_cover_uri,
+                "album": track.track_album,
+                "liked_at": track.liked_at.isoformat() if track.liked_at else None
+            } for track in liked_tracks
+        ]
+    }
+    
+    print(f"🔍 DEBUG LIKED TRACKS - User: {user_id}, Total: {len(liked_tracks)}")
+    return result
+
+# ДЕБАГ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ
+@app.get("/debug/users")
+async def debug_users():
+    db = next(get_db())
+    users = db.query(models.User).all()
+    
+    return {
+        "total_users": len(users),
+        "users": [
+            {
+                "id": user.id,
+                "telegram_id": user.telegram_id,
+                "first_name": user.first_name,
+                "username": user.username
+            } for user in users
+        ]
+    }

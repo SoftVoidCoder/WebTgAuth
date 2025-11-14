@@ -57,11 +57,20 @@ def add_liked_track(db: Session, user_id: int, track_data: dict):
     if existing:
         return existing  # Уже есть в лайках
     
+    # ПРОБЛЕМА: track_data['artists'] может быть строкой или массивом
+    artists_str = ''
+    if isinstance(track_data['artists'], list):
+        artists_str = ','.join(track_data['artists'])
+    elif isinstance(track_data['artists'], str):
+        artists_str = track_data['artists']
+    else:
+        artists_str = str(track_data['artists'])
+    
     liked_track = models.LikedTrack(
         user_id=user_id,
         track_id=track_data['id'],
         track_title=track_data['title'],
-        track_artists=','.join(track_data['artists']) if isinstance(track_data['artists'], list) else track_data['artists'],
+        track_artists=artists_str,  # Исправлено
         track_cover_uri=track_data.get('cover_uri'),
         track_album=track_data.get('album', 'Неизвестный альбом')
     )
