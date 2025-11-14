@@ -31,6 +31,7 @@ function setupAudioEvents() {
     audioElement.onpause = () => {
         isPlaying = false;
         updatePlayButton();
+        updateTrackInfoOnPlayPause();
         const listenBtn = document.querySelector('.listen-btn');
         if (listenBtn && audioElement.src) {
             listenBtn.innerHTML = '🎵 Продолжить';
@@ -41,6 +42,7 @@ function setupAudioEvents() {
     audioElement.onplay = () => {
         isPlaying = true;
         updatePlayButton();
+        updateTrackInfoOnPlayPause();
         const listenBtn = document.querySelector('.listen-btn');
         if (listenBtn) {
             listenBtn.innerHTML = '⏸️ Пауза';
@@ -490,9 +492,14 @@ async function playTrack(track) {
     currentTrackData = track;
     currentTrackId = track.id;
     
-    await playTrackById(track.id, track.title, track.artists.join(', '), track.cover_uri, track);
+    const title = track.title || 'Неизвестный трек';
+    const artists = Array.isArray(track.artists) ? track.artists.join(', ') : 'Неизвестный исполнитель';
+    const coverUri = track.cover_uri;
+    
+    await playTrackById(track.id, title, artists, coverUri, track);
     checkIfLiked();
 }
+
 
 // Воспроизведение следующего трека
 async function playNextTrack() {
@@ -512,6 +519,20 @@ async function playNextTrack() {
     }
 }
 
+function updateTrackInfoOnPlayPause() {
+    const trackFullInfo = document.getElementById('trackFullInfo');
+    if (currentTrackData) {
+        const title = currentTrackData.title || 'Неизвестный трек';
+        const artists = Array.isArray(currentTrackData.artists) ? 
+            currentTrackData.artists.join(', ') : 
+            'Неизвестный исполнитель';
+        
+        const status = isPlaying ? '▶️' : '⏸️';
+        trackFullInfo.textContent = `${status} ${title} • ${artists}`;
+    }
+}
+
+
 // Воспроизведение предыдущего трека
 async function playPrevTrack() {
     // Для предыдущего тоже новые треки
@@ -525,6 +546,7 @@ async function playTrackById(trackId, title, artist, coverUri, trackData = null)
     const nowPlayingArtist = document.getElementById('nowPlayingArtist');
     const trackCover = document.getElementById('trackCover');
     const likeBtn = document.getElementById('likeBtn');
+    const trackFullInfo = document.getElementById('trackFullInfo');
     
     currentTrackId = trackId;
     currentTrackData = trackData || {
@@ -535,9 +557,16 @@ async function playTrackById(trackId, title, artist, coverUri, trackData = null)
         album: "Альбом"
     };
     
-    // Обновляем информацию о треке
+    // Обновляем основную информацию о треке
     nowPlayingTitle.textContent = title;
     nowPlayingArtist.textContent = artist;
+    
+    // Обновляем полную информацию о треке
+    const artistsText = Array.isArray(currentTrackData.artists) ? 
+        currentTrackData.artists.join(', ') : 
+        artist;
+    
+    trackFullInfo.textContent = `${title} • ${artistsText}`;
     
     // Обновляем обложку
     if (coverUri) {
@@ -557,6 +586,13 @@ async function playTrackById(trackId, title, artist, coverUri, trackData = null)
             audioElement.src = data.download_url;
             await audioElement.play();
             isPlaying = true;
+            
+            // Обновляем информацию после успешной загрузки
+            if (data.title && data.artists) {
+                nowPlayingTitle.textContent = data.title;
+                nowPlayingArtist.textContent = data.artists.join(', ');
+                trackFullInfo.textContent = `${data.title} • ${data.artists.join(', ')}`;
+            }
         } else {
             throw new Error(data.error || 'Не удалось загрузить трек');
         }
@@ -584,7 +620,10 @@ function togglePlayPause() {
             listenBtn.classList.add('playing');
         }
     }
+    
+    updateTrackInfoOnPlayPause();
 }
+
 
 // Обновление кнопки воспроизведения
 function updatePlayButton() {

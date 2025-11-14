@@ -92,7 +92,7 @@
 </div>
 
 <!-- АУДИО ПЛЕЕР -->
-<div class="audio-player" id="audioPlayer" style="display: none;">
+<<div class="audio-player" id="audioPlayer" style="display: none;">
     <div class="player-main">
         <div class="player-info">
             <div class="track-cover" id="trackCover">
@@ -124,8 +124,7 @@
             </button>
             
             <!-- Кнопка лайка в controls -->
-            <button class="like-btn" id="likeBtn" onclick="toggleLike()" 
-                    style="background: rgba(255,255,255,0.1); border: none; font-size: 1.5rem; cursor: pointer; padding: 8px; border-radius: 50%; color: white; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+            <button class="like-btn" id="likeBtn" onclick="toggleLike()" title="Добавить в понравившиеся">
                 ♡
             </button>
             
@@ -135,6 +134,14 @@
                     <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
                 </svg>
                 <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.1" value="0.7">
+            </div>
+        </div>
+        
+        <!-- Дополнительная информация о треке -->
+        <div class="track-additional-info">
+            <div class="current-track-info" id="currentTrackInfo">
+                <span class="now-playing-label">Сейчас играет:</span>
+                <span class="track-full-info" id="trackFullInfo">Выберите трек для воспроизведения</span>
             </div>
         </div>
         
