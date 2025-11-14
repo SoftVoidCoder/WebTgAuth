@@ -30,32 +30,50 @@ function setupAudioEvents() {
 }
 
 // Загрузка лайкнутых треков
+// Загрузка лайкнутых треков
 async function loadLikedTracks() {
+    console.log('🟢 Loading liked tracks...');
+    
     try {
         const response = await fetch('/api/liked-tracks');
+        console.log('🟢 Response status:', response.status);
+        
         const data = await response.json();
+        console.log('🟢 Liked tracks data:', data);
         
         if (data.tracks && data.tracks.length > 0) {
             likedTracks = data.tracks;
+            console.log('🟢 Loaded tracks:', likedTracks);
             displayLikedTracks();
         } else {
+            console.log('🟡 No tracks found in response');
             showNoTracksMessage();
         }
     } catch (error) {
-        console.error('Ошибка загрузки лайкнутых треков:', error);
+        console.error('❌ Error loading liked tracks:', error);
         showNoTracksMessage();
     }
 }
 
 // Отображение лайкнутых треков в столбик
+// Отображение лайкнутых треков в столбик
 function displayLikedTracks() {
     const tracksList = document.getElementById('likedTracksList');
     const noTracksMessage = document.getElementById('noTracksMessage');
     
+    console.log('🟢 Displaying liked tracks:', likedTracks.length);
+    
     tracksList.innerHTML = '';
     noTracksMessage.style.display = 'none';
     
+    if (likedTracks.length === 0) {
+        console.log('🟡 No tracks to display');
+        showNoTracksMessage();
+        return;
+    }
+    
     likedTracks.forEach((track, index) => {
+        console.log('🟢 Creating track item:', track);
         const trackItem = createTrackItem(track, index);
         tracksList.appendChild(trackItem);
     });

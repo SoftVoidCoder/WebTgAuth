@@ -46,7 +46,18 @@ def get_or_create_user(db: Session, telegram_data: dict):
 
 
 def get_liked_tracks(db: Session, user_id: int):
-    return db.query(models.LikedTrack).filter(models.LikedTrack.user_id == user_id).all()
+    print(f"🟢 GET_LIKED_TRACKS - user_id: {user_id}")
+    
+    tracks = db.query(models.LikedTrack).filter(
+        models.LikedTrack.user_id == user_id
+    ).all()
+    
+    print(f"🟢 Found {len(tracks)} liked tracks in DB")
+    
+    for track in tracks:
+        print(f"🟢 Track: {track.track_id} - {track.track_title}")
+    
+    return tracks
 def add_liked_track(db: Session, user_id: int, track_data: dict):
     # Проверяем нет ли уже этого трека в лайках
     existing = db.query(models.LikedTrack).filter(
