@@ -79,22 +79,28 @@
 .like-btn {
     background: none;
     border: none;
-    font-size: 1.3rem;
+    font-size: 1.5rem !important;
     cursor: pointer;
-    padding: 5px;
+    padding: 8px;
     border-radius: 50%;
     transition: all 0.3s ease;
+    color: white !important;
+    width: 40px;
+    height: 40px;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
+    margin-left: 10px;
 }
 
 .like-btn.liked {
-    color: #ff3838;
+    color: #ff3838 !important;
 }
 
-.like-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+.like-btn.liked:hover {
+    background: rgba(255, 56, 56, 0.1);
 }
-
 .player-controls {
     display: flex;
     align-items: center;
