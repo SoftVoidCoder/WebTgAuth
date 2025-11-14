@@ -59,6 +59,7 @@ async def home(request: Request, current_user: dict = Depends(get_current_user))
         "bot_username": BOT_USERNAME
     })
 
+
 # API для получения популярных треков
 @app.get("/api/popular")
 async def get_popular_tracks():
@@ -66,15 +67,16 @@ async def get_popular_tracks():
         if not yandex_client:
             return JSONResponse({"error": "Сервис недоступен"}, status_code=503)
         
-        # Современные русские треки 2016-2025
+        # ТОЛЬКО русский рэп, фонк и похожие стили
         search_queries = [
-            "русский рэп 2024", "русская музыка 2024", "новинки рэпа 2024",
+            "русский рэп 2024", "новинки рэпа 2024", "русский фонк 2024",
             "Miyagi Эндшпиль", "Kizaru", "Макс Корж", "Scriptonite",
             "ЛСП", "FACE", "MORGENSHTERN", "Big Baby Tape",
-            "популярные треки 2024", "хиты 2024", "топ чарт 2024",
-            "русская поп музыка 2024", "новинки музыки 2024",
-            "Ramil'", "Markul", "ANIKV", "Три дня дождя",
-            "A.V.G", "Би-2", "Земфира", "Нервы"
+            "Markul", "ANIKV", "A.V.G", "Ramil'",
+            "Три дня дождя", "Boulevard Depo", "PHARAOH", "OG Buda",
+            "Mayot", "MellowBite", "SODA LUV", "Yanix",
+            "GONE.Fludd", "Thomas Mraz", "HENSY", "MACAN",
+            "163ONMYNECK", "SEEMEE", "T-Fest", "M'Dee"
         ]
         
         import random
@@ -135,6 +137,7 @@ async def get_popular_tracks():
         print(f"Error getting popular tracks: {e}")
         return {"tracks": []}
     
+
 @app.get("/profile")
 async def profile(request: Request, current_user: dict = Depends(get_current_user)):
     if not current_user:

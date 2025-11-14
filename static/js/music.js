@@ -104,32 +104,46 @@ async function loadTracksBasedOnLikes() {
     const userPreferences = analyzeUserPreferences();
     console.log('Найдены предпочтения:', userPreferences);
     
-    // Пробуем разные стратегии поиска
-    let foundTracks = [];
-    
-    // Стратегия 1: По самым частым артистам
+    // Стратегия 1: По самым частым артистам (самая точная)
     if (userPreferences.topArtists.length > 0) {
         const randomArtist = userPreferences.topArtists[0];
         console.log(`Ищем треки артиста: ${randomArtist}`);
-        foundTracks = await searchTracks(randomArtist);
+        const foundTracks = await searchTracks(randomArtist);
+        if (foundTracks.length > 0) {
+            tracksList = foundTracks;
+            console.log('Найдено треков по артисту:', tracksList.length);
+            return;
+        }
     }
     
-    // Стратегия 2: Если не нашли по артистам, ищем по жанрам
-    if (foundTracks.length === 0 && userPreferences.possibleGenres.length > 0) {
-        const randomGenre = userPreferences.possibleGenres[0];
-        console.log(`Ищем треки жанра: ${randomGenre}`);
-        foundTracks = await searchTracks(randomGenre);
+    // Стратегия 2: По жанрам из лайков
+    if (userPreferences.possibleGenres.length > 0) {
+        for (let genre of userPreferences.possibleGenres) {
+            console.log(`Ищем треки жанра: ${genre}`);
+            const foundTracks = await searchTracks(genre + ' 2024');
+            if (foundTracks.length > 0) {
+                tracksList = foundTracks;
+                console.log('Найдено треков по жанру:', tracksList.length);
+                return;
+            }
+        }
     }
     
-    // Стратегия 3: Если все еще не нашли, используем популярные треки
-    if (foundTracks.length === 0) {
-        console.log('Не удалось найти рекомендации, используем популярные треки');
-        await loadNewTracks();
-        return;
+    // Стратегия 3: Похожие артисты
+    if (userPreferences.topArtists.length > 1) {
+        const similarArtist = userPreferences.topArtists[1];
+        console.log(`Ищем похожих артистов: ${similarArtist}`);
+        const foundTracks = await searchTracks(similarArtist);
+        if (foundTracks.length > 0) {
+            tracksList = foundTracks;
+            console.log('Найдено треков похожих артистов:', tracksList.length);
+            return;
+        }
     }
     
-    tracksList = foundTracks;
-    console.log('Найдено рекомендованных треков:', tracksList.length);
+    // Если ничего не нашли - используем популярные
+    console.log('Не удалось найти рекомендации, используем популярные треки');
+    await loadNewTracks();
 }
 
 // Анализ предпочтений пользователя
@@ -161,6 +175,7 @@ function analyzeUserPreferences() {
     };
 }
 
+
 // Анализ возможных жанров по треку
 function analyzeGenres(track, genresSet) {
     const title = track.title?.toLowerCase() || '';
@@ -169,22 +184,13 @@ function analyzeGenres(track, genresSet) {
     
     const text = title + ' ' + artists + ' ' + album;
     
-    // Определяем жанры по ключевым словам
+    // ТОЛЬКО нормальные жанры - русский рэп, фонк и т.д.
     const genreKeywords = {
-        'рэп': ['рэп', 'rap', 'хип-хоп', 'hip-hop', 'бит', 'баттл'],
-        'поп': ['поп', 'pop', 'хит', 'радио', 'танцевальн'],
-        'рок': ['рок', 'rock', 'гитар', 'групп', 'метал'],
-        'электро': ['электро', 'electronic', 'техно', 'house', 'транс', 'dubstep'],
-        'джаз': ['джаз', 'jazz', 'блюз', 'blues'],
-        'классика': ['классик', 'classical', 'симфония', 'соната'],
-        'регги': ['регги', 'reggae', 'даб'],
-        'фолк': ['фолк', 'folk', 'народн', 'традицион'],
-        'инди': ['инди', 'indie', 'альтернатив'],
-        'шансон': ['шансон', 'блатн', 'тюремн'],
-        'романс': ['романс', 'лирич'],
-        'саундтрек': ['саундтрек', 'soundtrack', 'фильм', 'кино'],
-        'релакс': ['релакс', 'медитат', 'спокойн', 'расслабл'],
-        'танцевальн': ['танцевальн', 'dance', 'клубн']
+        'рэп': ['рэп', 'rap', 'хип-хоп', 'hip-hop', 'бит', 'баттл', 'miyagi', 'kizaru', 'моргенштерн', 'face', 'scriptonite'],
+        'фонк': ['фонк', 'phonk', 'дрилл', 'drill', 'memphis'],
+        'треп': ['треп', 'trap'],
+        'альтернатива': ['альтернатив', 'alternative', 'инди', 'indie'],
+        'поп-рэп': ['поп-рэп', 'pop rap', 'лсп', 'max korzh']
     };
     
     Object.entries(genreKeywords).forEach(([genre, keywords]) => {
@@ -192,6 +198,11 @@ function analyzeGenres(track, genresSet) {
             genresSet.add(genre);
         }
     });
+    
+    // Если жанр не определился, ставим рэп по умолчанию
+    if (genresSet.size === 0) {
+        genresSet.add('рэп');
+    }
 }
 
 // Поиск треков по запросу
