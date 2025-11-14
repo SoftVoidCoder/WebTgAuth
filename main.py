@@ -11,11 +11,20 @@ from app import models
 from app.dependencies import get_current_user
 from app.routers import auth, users, music
 
-# ПРИНУДИТЕЛЬНО ПЕРЕСОЗДАЕМ ВСЕ ТАБЛИЦЫ
-print("🔄 Пересоздаем таблицы БД...")
-models.Base.metadata.drop_all(bind=engine)  # Удаляем старые таблицы
-models.Base.metadata.create_all(bind=engine)  # Создаем новые таблицы
-print("✅ Таблицы БД успешно созданы")
+# СОЗДАЕМ ТАБЛИЦЫ БЕЗ УДАЛЕНИЯ ДАННЫХ
+print("🔄 Создаем таблицы БД...")
+models.Base.metadata.create_all(bind=engine)
+
+# Проверяем есть ли таблица liked_tracks
+from sqlalchemy import inspect
+inspector = inspect(engine)
+if 'liked_tracks' not in inspector.get_table_names():
+    print("✅ Создаем таблицу liked_tracks...")
+    models.LikedTrack.__table__.create(engine)
+else:
+    print("✅ Таблица liked_tracks уже существует")
+
+print("✅ Все таблицы БД готовы")
 
 app = FastAPI(title="Music App")
 
