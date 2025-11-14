@@ -52,16 +52,21 @@ async def get_popular_tracks():
         if not yandex_client:
             return JSONResponse({"error": "Сервис недоступен"}, status_code=503)
         
-        # Ищем разные популярные запросы каждый раз
+        # Современные русские треки 2016-2025
         search_queries = [
-            "популярные треки 2024", "новинки музыки", "хиты", "топ чарт", 
-            "русские хиты", "зарубежные хиты", "новые релизы", "популярное",
-            "музыка в тренде", "горячие треки", "новинки рэпа", "поп музыка"
+            "русский рэп 2024", "русская музыка 2024", "новинки рэпа 2024",
+            "Miyagi Эндшпиль", "Kizaru", "Макс Корж", "Scriptonite",
+            "ЛСП", "FACE", "MORGENSHTERN", "Big Baby Tape",
+            "популярные треки 2024", "хиты 2024", "топ чарт 2024",
+            "русская поп музыка 2024", "новинки музыки 2024",
+            "Ramil'", "Markul", "ANIKV", "Три дня дождя",
+            "A.V.G", "Би-2", "Земфира", "Нервы"
         ]
         
         import random
         random_query = random.choice(search_queries)
         
+        print(f"Searching for: {random_query}")
         search_result = yandex_client.search(random_query, type_="track")
         
         if not search_result or not search_result.tracks:
@@ -72,7 +77,8 @@ async def get_popular_tracks():
         random.shuffle(all_tracks)
         
         tracks_data = []
-        for track in all_tracks[:15]:  # Меньше треков для скорости
+        for track in all_tracks[:15]:
+            # Безопасно получаем данные
             album_id = None
             if hasattr(track, 'albums') and track.albums and len(track.albums) > 0:
                 album_id = track.albums[0].id
@@ -87,21 +93,35 @@ async def get_popular_tracks():
             elif hasattr(track, 'album') and track.album:
                 album_title = track.album.title
             
+            # Артисты
+            artists = []
+            if hasattr(track, 'artists') and track.artists:
+                for artist in track.artists:
+                    if hasattr(artist, 'name'):
+                        artists.append(artist.name)
+            
+            # Обложка
+            cover_uri = None
+            if hasattr(track, 'cover_uri') and track.cover_uri:
+                cover_uri = f"https://{track.cover_uri.replace('%%', '300x300')}"
+            
             track_info = {
                 "id": track_id,
                 "title": track.title,
-                "artists": [artist.name for artist in track.artists],
-                "cover_uri": f"https://{track.cover_uri.replace('%%', '300x300')}" if track.cover_uri else None,
+                "artists": artists,
+                "cover_uri": cover_uri,
                 "album": album_title
             }
             tracks_data.append(track_info)
         
+        print(f"Found {len(tracks_data)} tracks")
         return {"tracks": tracks_data}
         
     except Exception as e:
         print(f"Error getting popular tracks: {e}")
         return {"tracks": []}
-
+    
+    
 @app.get("/profile")
 async def profile(request: Request, current_user: dict = Depends(get_current_user)):
     if not current_user:
@@ -118,6 +138,7 @@ async def profile(request: Request, current_user: dict = Depends(get_current_use
 @app.post("/api/like/{track_id}")
 async def like_track(
     track_id: str,
+    request: Request,
     current_user: dict = Depends(get_current_user)
 ):
     if not current_user:
@@ -126,20 +147,41 @@ async def like_track(
     db = next(get_db())
     user_id = current_user["db_user"].id
     
-    # Получаем информацию о треке
     try:
-        track_data = {
-            "id": track_id,
-            "title": "Трек",  # Можно получить из запроса или из Яндекс API
-            "artists": ["Исполнитель"],
-            "cover_uri": None,
-            "album": "Альбом"
-        }
+        # Получаем данные трека из тела запроса
+        track_data = await request.json()
         
         liked_track = crud.add_liked_track(db, user_id, track_data)
         return {"status": "liked", "track_id": track_id}
         
     except Exception as e:
+        print(f"Error liking track: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+@app.get("/api/liked-tracks")
+async def get_liked_tracks(current_user: dict = Depends(get_current_user)):
+    if not current_user:
+        return JSONResponse({"error": "Не авторизован"}, status_code=401)
+    
+    db = next(get_db())
+    user_id = current_user["db_user"].id
+    
+    try:
+        liked_tracks = crud.get_liked_tracks(db, user_id)
+        tracks_data = []
+        for track in liked_tracks:
+            tracks_data.append({
+                "id": track.track_id,
+                "title": track.track_title,
+                "artists": track.track_artists.split(',') if track.track_artists else [],
+                "cover_uri": track.track_cover_uri,
+                "album": track.track_album
+            })
+        
+        return {"tracks": tracks_data}
+        
+    except Exception as e:
+        print(f"Error getting liked tracks: {e}")
         return JSONResponse({"error": str(e)}, status_code=500)
 
 @app.delete("/api/unlike/{track_id}")

@@ -1,5 +1,6 @@
 let currentTrackId = null;
 let isPlaying = false;
+let currentTrackIndex = 0;
 let tracksList = [];
 let audioElement = null;
 let currentTrackData = null;
@@ -24,10 +25,6 @@ function setupAudioEvents() {
     audioElement.onplay = () => {
         isPlaying = true;
         updatePlayButton();
-    };
-    
-    audioElement.ontimeupdate = function() {
-        updateProgress();
     };
 }
 
@@ -76,7 +73,7 @@ async function playTrack(track) {
     currentTrackData = track;
     currentTrackId = track.id;
     
-    await playTrackById(track.id, track.title, track.artists.join(', '), track.cover_uri);
+    await playTrackById(track.id, track.title, track.artists.join(', '), track.cover_uri, track);
     checkIfLiked();
 }
 
@@ -98,10 +95,21 @@ async function playPrevTrack() {
 }
 
 // Воспроизведение трека по ID
-async function playTrackById(trackId, title, artist, coverUri) {
+async function playTrackById(trackId, title, artist, coverUri, trackData = null) {
+    const audioPlayer = document.getElementById('audioPlayer');
     const nowPlayingTitle = document.getElementById('nowPlayingTitle');
     const nowPlayingArtist = document.getElementById('nowPlayingArtist');
     const trackCover = document.getElementById('trackCover');
+    const likeBtn = document.getElementById('likeBtn');
+    
+    currentTrackId = trackId;
+    currentTrackData = trackData || {
+        id: trackId,
+        title: title,
+        artists: [artist],
+        cover_uri: coverUri,
+        album: "Альбом"
+    };
     
     // Обновляем информацию о треке
     nowPlayingTitle.textContent = title;
@@ -113,6 +121,9 @@ async function playTrackById(trackId, title, artist, coverUri) {
     } else {
         trackCover.innerHTML = '<div class="cover-placeholder">🎵</div>';
     }
+    
+    // Проверяем лайк
+    await checkIfLiked();
     
     try {
         const response = await fetch(`/music/track/${trackId}`);
@@ -195,7 +206,7 @@ async function toggleLike() {
                 likeBtn.classList.remove('liked');
             }
         } else {
-            // Добавляем лайк
+            // Добавляем лайк с полными данными трека
             const response = await fetch(`/api/like/${currentTrackId}`, {
                 method: 'POST',
                 headers: {

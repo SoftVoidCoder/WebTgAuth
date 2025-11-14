@@ -68,19 +68,31 @@ function createTrackItem(track, index) {
     item.setAttribute('data-track-id', track.id);
     item.setAttribute('data-track-index', index);
     
-    const artists = Array.isArray(track.artists) ? track.artists.join(', ') : track.artists;
+    // Безопасно получаем артистов
+    let artistsText = 'Неизвестный исполнитель';
+    if (track.artists) {
+        if (Array.isArray(track.artists)) {
+            artistsText = track.artists.join(', ');
+        } else if (typeof track.artists === 'string') {
+            artistsText = track.artists;
+        }
+    }
+    
+    // Безопасно получаем обложку
+    const coverUri = track.cover_uri || null;
     
     item.innerHTML = `
         <div class="track-item-image">
-            ${track.cover_uri ? 
-                `<img src="${track.cover_uri}" alt="${track.title}" class="track-item-cover">` : 
-                `<div class="track-item-placeholder">🎵</div>`
+            ${coverUri ? 
+                `<img src="${coverUri}" alt="${track.title}" class="track-item-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : 
+                ``
             }
+            <div class="track-item-placeholder" style="${coverUri ? 'display: none;' : ''}">🎵</div>
         </div>
         
         <div class="track-item-info">
-            <div class="track-item-title">${track.title}</div>
-            <div class="track-item-artist">${artists}</div>
+            <div class="track-item-title">${track.title || 'Без названия'}</div>
+            <div class="track-item-artist">${artistsText}</div>
             <div class="track-item-album">${track.album || 'Неизвестный альбом'}</div>
         </div>
         
@@ -104,7 +116,7 @@ async function playLikedTrackFromList(index) {
     const track = likedTracks[index];
     currentTrackIndex = index;
     
-    await playTrackById(track.id, track.title, track.artists, track.cover_uri);
+    await playTrackById(track.id, track.title, track.artists, track.cover_uri, track);
 }
 
 // Воспроизведение следующего лайкнутого трека
@@ -124,7 +136,7 @@ function playPrevLikedTrack() {
 }
 
 // Воспроизведение трека по ID
-async function playTrackById(trackId, title, artists, coverUri) {
+async function playTrackById(trackId, title, artists, coverUri, trackData) {
     const compactPlayer = document.getElementById('compactPlayer');
     const compactTitle = document.getElementById('compactTitle');
     const compactArtist = document.getElementById('compactArtist');
@@ -138,7 +150,17 @@ async function playTrackById(trackId, title, artists, coverUri) {
     
     // Обновляем информацию о треке
     compactTitle.textContent = title;
-    compactArtist.textContent = Array.isArray(artists) ? artists.join(', ') : artists;
+    
+    // Безопасно получаем артистов для отображения
+    let artistsText = 'Неизвестный исполнитель';
+    if (artists) {
+        if (Array.isArray(artists)) {
+            artistsText = artists.join(', ');
+        } else if (typeof artists === 'string') {
+            artistsText = artists;
+        }
+    }
+    compactArtist.textContent = artistsText;
     
     // Обновляем обложку
     if (coverUri) {
