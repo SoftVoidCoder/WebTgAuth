@@ -206,10 +206,18 @@ async def get_liked_tracks(current_user: dict = Depends(get_current_user)):
         liked_tracks = crud.get_liked_tracks(db, user_id)
         tracks_data = []
         for track in liked_tracks:
+            # ФИКС: Преобразуем строку artists обратно в массив
+            artists_array = []
+            if track.track_artists:
+                if ',' in track.track_artists:
+                    artists_array = track.track_artists.split(',')
+                else:
+                    artists_array = [track.track_artists]
+            
             tracks_data.append({
                 "id": track.track_id,
                 "title": track.track_title,
-                "artists": track.track_artists.split(',') if track.track_artists else [],
+                "artists": artists_array,  # Теперь всегда массив!
                 "cover_uri": track.track_cover_uri,
                 "album": track.track_album
             })
