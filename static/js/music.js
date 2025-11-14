@@ -190,16 +190,15 @@ async function loadTracksByPreference() {
 async function loadDiscoveryTracks() {
     console.log('Загружаем незнакомые треки...');
     
-    // Используем случайные популярные запросы для разнообразия
+    // Для незнакомого используем смешанные запросы
     const discoveryQueries = [
-        "новинки музыки 2024",
-        "русская музыка 2024", 
-        "зарубежная музыка 2024",
-        "популярные треки",
-        "хиты недели",
-        "новые релизы",
-        "топ чарты",
-        "музыкальные новинки"
+        "новинки русского рэпа 2024",
+        "русский фонк 2024",
+        "новые русские трепы",
+        "русская альтернатива 2024",
+        "хиты русского рэпа",
+        "популярный русский рэп",
+        "русская музыка 2024 новинки"
     ];
     
     const randomQuery = discoveryQueries[Math.floor(Math.random() * discoveryQueries.length)];
@@ -211,7 +210,6 @@ async function loadDiscoveryTracks() {
         tracksList = foundTracks;
         console.log('Найдено незнакомых треков:', tracksList.length);
     } else {
-        // Если не нашли, используем популярные
         console.log('Незнакомые треки не найдены, используем популярные');
         await loadNewTracks();
     }
@@ -385,7 +383,12 @@ async function searchTracks(query) {
     try {
         const response = await fetch(`/api/similar?query=${encodeURIComponent(query)}`);
         const data = await response.json();
-        return data.tracks || [];
+        
+        if (data.tracks && data.tracks.length > 0) {
+            // Сортируем по релевантности (предполагая что первые треки более релевантны)
+            return data.tracks.slice(0, 20); // Берем первые 20 треков
+        }
+        return [];
     } catch (error) {
         console.error('Ошибка поиска треков:', error);
         return [];
@@ -394,15 +397,91 @@ async function searchTracks(query) {
 
 // Загрузка новых треков
 async function loadNewTracks() {
-    const response = await fetch('/api/popular');
-    const data = await response.json();
+    console.log('Загружаем популярные треки русских исполнителей...');
     
-    if (data.tracks && data.tracks.length > 0) {
-        tracksList = data.tracks;
-        console.log('Загружено треков:', tracksList.length);
+    // Список популярных русских исполнителей для поиска
+    const popularArtists = [
+        "MACAN", "Kizaru", "Big Baby Tape", "Miyagi", "Эндшпиль",
+        "MORGENSHTERN", "Scriptonite", "ЛСП", "FACE", "Max Korzh",
+        "Markul", "ANIKV", "A.V.G", "Ramil", "Три дня дождя",
+        "Boulevard Depo", "PHARAOH", "OG Buda", "Mayot", "MellowBite",
+        "SODA LUV", "Yanix", "GONE.Fludd", "Thomas Mraz", "HENSY",
+        "163ONMYNECK", "SEEMEE", "T-Fest", "M'Dee", "ЛСП",
+        "MiyaGi", "Эндшпиль", "Каста", "Баста", "Гуф"
+    ];
+    
+    // Выбираем случайного исполнителя
+    const randomArtist = popularArtists[Math.floor(Math.random() * popularArtists.length)];
+    console.log('Ищем треки исполнителя:', randomArtist);
+    
+    // Ищем треки этого исполнителя
+    const foundTracks = await searchTracks(randomArtist);
+    
+    if (foundTracks.length > 0) {
+        // Фильтруем только треки русских исполнителей
+        const russianTracks = foundTracks.filter(track => {
+            const artists = track.artists || [];
+            return artists.some(artist => 
+                popularArtists.some(popular => 
+                    artist.toLowerCase().includes(popular.toLowerCase())
+                )
+            );
+        });
+        
+        if (russianTracks.length > 0) {
+            tracksList = russianTracks;
+            console.log('Найдено популярных русских треков:', tracksList.length);
+        } else {
+            tracksList = foundTracks;
+            console.log('Найдено треков исполнителя:', tracksList.length);
+        }
         return true;
     } else {
-        throw new Error('Не удалось загрузить треки');
+        // Если не нашли по исполнителю, используем общий поиск популярного
+        console.log('Не найдено треков исполнителя, используем общий поиск');
+        return await loadPopularTracksFallback();
+    }
+}
+
+async function loadPopularTracksFallback() {
+    try {
+        const response = await fetch('/api/popular');
+        const data = await response.json();
+        
+        if (data.tracks && data.tracks.length > 0) {
+            // Фильтруем только русские треки
+            const russianTracks = data.tracks.filter(track => {
+                const title = track.title?.toLowerCase() || '';
+                const artists = track.artists?.join(' ').toLowerCase() || '';
+                const text = title + ' ' + artists;
+                
+                // Ключевые слова для определения русской музыки
+                const russianKeywords = [
+                    'макан', 'кизару', 'бэйби', 'мэло', 'miyagi', 'kizaru', 'macan',
+                    'моргенштерн', 'morgenshtern', 'скриптонит', 'scriptonite',
+                    'лсп', 'face', 'макс корж', 'markul', 'anikv', 'ramil',
+                    'бульвар депо', 'pharaoh', 'og buda', 'mayot', 'mellowbite',
+                    'сода люв', 'yanix', 'gone fludd', 'hensy', '163onmyneck',
+                    'seemee', 't-fest', 'm\'dee', 'каста', 'баста', 'гуф'
+                ];
+                
+                return russianKeywords.some(keyword => text.includes(keyword));
+            });
+            
+            if (russianTracks.length > 0) {
+                tracksList = russianTracks;
+                console.log('Отфильтровано русских треков:', tracksList.length);
+            } else {
+                tracksList = data.tracks;
+                console.log('Используем все найденные треки:', tracksList.length);
+            }
+            return true;
+        } else {
+            throw new Error('Не удалось загрузить треки');
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки популярных треков:', error);
+        return false;
     }
 }
 
