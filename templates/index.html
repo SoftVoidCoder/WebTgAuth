@@ -17,26 +17,31 @@
     {% else %}
         <!-- КНОПКА СЛУШАТЬ -->
         <div class="listen-section">
-            <button class="listen-btn" onclick="loadAndPlayMusic()">
+            <button class="listen-btn" onclick="startRadio()">
                 🎵 Слушать музыку
             </button>
-        </div>
-
-        <!-- ТРЕКИ (появятся после нажатия кнопки) -->
-        <div id="musicContainer" style="display: none;">
-            <h2 class="section-title">🔥 Популярные треки</h2>
-            <div class="tracks-grid" id="tracksGrid"></div>
         </div>
     {% endif %}
 </section>
 
 <!-- АУДИО ПЛЕЕР -->
 <div class="audio-player" id="audioPlayer" style="display: none;">
+    <div class="player-info">
+        <div class="track-cover" id="trackCover">
+            <div class="cover-placeholder">🎵</div>
+        </div>
+        <div class="track-details">
+            <div class="track-title" id="nowPlayingTitle">Выберите трек</div>
+            <div class="track-artist" id="nowPlayingArtist">Исполнитель</div>
+        </div>
+    </div>
     <audio controls class="audio-element" id="audioElement">
         Ваш браузер не поддерживает аудио элементы.
     </audio>
-    <div class="now-playing" id="nowPlaying"></div>
-    <!-- Кнопки управления добавятся через JS -->
+    <div class="player-controls">
+        <button class="control-btn" onclick="playPrevTrack()" title="Предыдущий">⏮️</button>
+        <button class="control-btn" onclick="playNextTrack()" title="Следующий">⏭️</button>
+    </div>
 </div>
 
 <script src="/static/js/music.js"></script>

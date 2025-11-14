@@ -53,8 +53,9 @@ async def get_popular_tracks():
         
         # Ищем разные популярные запросы каждый раз
         search_queries = [
-            "популярные треки", "новинки музыки", "хиты", "топ чарт", 
-            "русские хиты", "зарубежные хиты", "новые релизы", "популярное"
+            "популярные треки 2024", "новинки музыки", "хиты", "топ чарт", 
+            "русские хиты", "зарубежные хиты", "новые релизы", "популярное",
+            "музыка в тренде", "горячие треки", "новинки рэпа", "поп музыка"
         ]
         
         import random
@@ -67,10 +68,10 @@ async def get_popular_tracks():
         
         # Берем случайные треки из результатов
         all_tracks = search_result.tracks.results
-        random.shuffle(all_tracks)  # Перемешиваем треки
+        random.shuffle(all_tracks)
         
         tracks_data = []
-        for track in all_tracks[:20]:  # Берем первые 20 после перемешивания
+        for track in all_tracks[:15]:  # Меньше треков для скорости
             album_id = None
             if hasattr(track, 'albums') and track.albums and len(track.albums) > 0:
                 album_id = track.albums[0].id
