@@ -1,3 +1,4 @@
+// music.js
 let currentTrackId = null;
 let isPlaying = false;
 let currentTrackIndex = 0;
@@ -5,6 +6,7 @@ let tracksList = [];
 let audioElement = null;
 let currentTrackData = null;
 let userLikedTracks = [];
+let musicPreference = 'liked'; // По умолчанию - любимое
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', function() {
@@ -12,6 +14,12 @@ document.addEventListener('DOMContentLoaded', function() {
     setupAudioEvents();
     setupVolumeControl();
     loadUserPreferences();
+    
+    // Загружаем сохраненные настройки
+    const savedPreference = localStorage.getItem('musicPreference');
+    if (savedPreference) {
+        musicPreference = savedPreference;
+    }
 });
 
 // Настройка событий аудио
@@ -68,6 +76,101 @@ async function loadUserPreferences() {
     }
 }
 
+// Показать настройки
+function showPreferences() {
+    const preferencesSection = document.getElementById('preferencesSection');
+    preferencesSection.style.display = 'flex';
+    
+    // Устанавливаем текущую настройку
+    const currentPreference = document.querySelector(`input[name="musicPreference"][value="${musicPreference}"]`);
+    if (currentPreference) {
+        currentPreference.checked = true;
+    }
+}
+
+// Скрыть настройки
+function hidePreferences() {
+    const preferencesSection = document.getElementById('preferencesSection');
+    preferencesSection.style.display = 'none';
+}
+
+// Применить настройки
+function applyPreferences() {
+    const selectedPreference = document.querySelector('input[name="musicPreference"]:checked');
+    if (selectedPreference) {
+        musicPreference = selectedPreference.value;
+        console.log('Выбрана настройка:', musicPreference);
+        
+        // Сохраняем в localStorage
+        localStorage.setItem('musicPreference', musicPreference);
+        
+        hidePreferences();
+        
+        // Если музыка играет, перезапускаем с новыми настройками
+        if (isPlaying) {
+            restartRadioWithNewPreferences();
+        }
+    }
+}
+
+// Перезапуск радио с новыми настройками
+async function restartRadioWithNewPreferences() {
+    console.log('Перезапускаем радио с настройкой:', musicPreference);
+    
+    // Останавливаем текущее воспроизведение
+    audioElement.pause();
+    isPlaying = false;
+    
+    // Загружаем треки по новой настройке
+    await loadTracksByPreference();
+    
+    if (tracksList.length > 0) {
+        await playTrack(tracksList[0]);
+    }
+}
+
+// Загрузка треков по выбранной настройке
+async function loadTracksByPreference() {
+    switch (musicPreference) {
+        case 'liked':
+            await loadTracksBasedOnLikes();
+            break;
+        case 'popular':
+            await loadNewTracks();
+            break;
+        case 'discover':
+            await loadDiscoveryTracks();
+            break;
+        default:
+            await loadTracksBasedOnLikes();
+    }
+}
+
+// Загрузка треков для открытия нового
+async function loadDiscoveryTracks() {
+    console.log('Загружаем незнакомые треки...');
+    
+    // Используем случайные популярные запросы для разнообразия
+    const discoveryQueries = [
+        "новинки музыки 2024",
+        "русская музыка 2024",
+        "зарубежная музыка 2024",
+        "популярные треки",
+        "хиты недели"
+    ];
+    
+    const randomQuery = discoveryQueries[Math.floor(Math.random() * discoveryQueries.length)];
+    const foundTracks = await searchTracks(randomQuery);
+    
+    if (foundTracks.length > 0) {
+        tracksList = foundTracks;
+        console.log('Найдено незнакомых треков:', tracksList.length);
+    } else {
+        // Если не нашли, используем популярные
+        await loadNewTracks();
+    }
+}
+
 // Запуск радио с учетом предпочтений
 async function startRadio() {
     const listenBtn = document.querySelector('.listen-btn');
@@ -89,18 +192,12 @@ async function startRadio() {
     }
     
     // Запускаем новое радио
-    listenBtn.innerHTML = '🔄 Анализируем ваши вкусы...';
+    listenBtn.innerHTML = '🔄 Загружаем музыку...';
     listenBtn.disabled = true;
     
     try {
-        // Сначала пробуем загрузить треки на основе лайков
-        if (userLikedTracks.length > 0) {
-            console.log('Используем лайкнутые треки для рекомендаций');
-            await loadTracksBasedOnLikes();
-        } else {
-            console.log('Лайков нет, загружаем популярные треки');
-            await loadNewTracks();
-        }
+        // Загружаем треки по выбранной настройке
+        await loadTracksByPreference();
         
         const audioPlayer = document.getElementById('audioPlayer');
         listenBtn.innerHTML = '⏸️ Пауза';
@@ -204,7 +301,6 @@ function analyzeUserPreferences() {
     };
 }
 
-
 // Анализ возможных жанров по треку
 function analyzeGenres(track, genresSet) {
     const title = track.title?.toLowerCase() || '';
@@ -260,7 +356,6 @@ async function loadNewTracks() {
     }
 }
 
-
 // Воспроизведение трека
 async function playTrack(track) {
     currentTrackData = track;
@@ -270,17 +365,16 @@ async function playTrack(track) {
     checkIfLiked();
 }
 
-
 // Воспроизведение следующего трека
 async function playNextTrack() {
-    // Всегда загружаем новые треки по жанрам
-    await loadTracksBasedOnLikes();
+    // Загружаем новые треки по текущей настройке
+    await loadTracksByPreference();
     
     if (tracksList.length > 0) {
         const randomIndex = Math.floor(Math.random() * tracksList.length);
         await playTrack(tracksList[randomIndex]);
     } else {
-        // Если не нашли по жанрам - грузим популярные
+        // Если не нашли - грузим популярные
         await loadNewTracks();
         if (tracksList.length > 0) {
             const randomIndex = Math.floor(Math.random() * tracksList.length);
@@ -294,6 +388,7 @@ async function playPrevTrack() {
     // Для предыдущего тоже новые треки
     await playNextTrack();
 }
+
 // Воспроизведение трека по ID
 async function playTrackById(trackId, title, artist, coverUri, trackData = null) {
     const audioPlayer = document.getElementById('audioPlayer');
@@ -361,6 +456,7 @@ function togglePlayPause() {
         }
     }
 }
+
 // Обновление кнопки воспроизведения
 function updatePlayButton() {
     const playPauseBtn = document.getElementById('playPauseBtn');

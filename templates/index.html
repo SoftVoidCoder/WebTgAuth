@@ -1,3 +1,4 @@
+<!-- index.html -->
 {% extends "base.html" %}
 
 {% block head %}
@@ -44,9 +45,51 @@
                 🎵 Слушать музыку
             </button>
             <a href="/profile#liked" class="profile-btn">❤️ Мне нравится</a>
+            <button class="settings-btn" onclick="showPreferences()">
+                ⚙️ Настроить
+            </button>
         </div>
     {% endif %}
 </section>
+
+<!-- НАСТРОЙКИ МУЗЫКИ -->
+<div class="preferences-section" id="preferencesSection" style="display: none;">
+    <div class="preferences-modal">
+        <h3>🎵 Настройки музыки</h3>
+        <p>Выберите тип рекомендаций:</p>
+        
+        <div class="preference-options">
+            <label class="preference-option">
+                <input type="radio" name="musicPreference" value="liked" checked>
+                <span class="preference-label">
+                    <span class="preference-icon">❤️</span>
+                    Любимое
+                </span>
+            </label>
+            
+            <label class="preference-option">
+                <input type="radio" name="musicPreference" value="popular">
+                <span class="preference-label">
+                    <span class="preference-icon">🔥</span>
+                    Популярное
+                </span>
+            </label>
+            
+            <label class="preference-option">
+                <input type="radio" name="musicPreference" value="discover">
+                <span class="preference-label">
+                    <span class="preference-icon">🎯</span>
+                    Незнакомое
+                </span>
+            </label>
+        </div>
+        
+        <div class="preferences-actions">
+            <button class="apply-btn" onclick="applyPreferences()">Применить</button>
+            <button class="cancel-btn" onclick="hidePreferences()">Отмена</button>
+        </div>
+    </div>
+</div>
 
 <!-- АУДИО ПЛЕЕР -->
 <div class="audio-player" id="audioPlayer" style="display: none;">
@@ -106,5 +149,17 @@
 <script>
 // Добавляем класс для body только на главной странице
 document.body.classList.add('home-body');
+
+// Загружаем настройки при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    const savedPreference = localStorage.getItem('musicPreference');
+    if (savedPreference) {
+        musicPreference = savedPreference;
+        const radio = document.querySelector(`input[name="musicPreference"][value="${savedPreference}"]`);
+        if (radio) {
+            radio.checked = true;
+        }
+    }
+});
 </script>
 {% endblock %}
