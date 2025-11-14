@@ -4,11 +4,14 @@ let currentTrackIndex = 0;
 let tracksList = [];
 let audioElement = null;
 let currentTrackData = null;
+let userLikedTracks = [];
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', function() {
     audioElement = document.getElementById('audioElement');
     setupAudioEvents();
+    setupVolumeControl();
+    loadUserPreferences();
 });
 
 // Настройка событий аудио
@@ -28,16 +31,50 @@ function setupAudioEvents() {
     };
 }
 
-// Запуск радио
+// Настройка громкости
+function setupVolumeControl() {
+    const volumeSlider = document.getElementById('volumeSlider');
+    if (volumeSlider && audioElement) {
+        audioElement.volume = volumeSlider.value;
+        
+        volumeSlider.addEventListener('input', function() {
+            audioElement.volume = this.value;
+        });
+    }
+}
+
+// Загрузка предпочтений пользователя
+async function loadUserPreferences() {
+    try {
+        const response = await fetch('/api/liked-tracks');
+        const data = await response.json();
+        
+        if (data.tracks && data.tracks.length > 0) {
+            userLikedTracks = data.tracks;
+            console.log('Загружено лайкнутых треков:', userLikedTracks.length);
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки предпочтений:', error);
+    }
+}
+
+// Запуск радио с учетом предпочтений
 async function startRadio() {
     const listenBtn = document.querySelector('.listen-btn');
     const audioPlayer = document.getElementById('audioPlayer');
     
-    listenBtn.innerHTML = '🔄 Загружаем треки...';
+    listenBtn.innerHTML = '🔄 Анализируем ваши вкусы...';
     listenBtn.disabled = true;
     
     try {
-        await loadNewTracks();
+        // Сначала пробуем загрузить треки на основе лайков
+        if (userLikedTracks.length > 0) {
+            console.log('Используем лайкнутые треки для рекомендаций');
+            await loadTracksBasedOnLikes();
+        } else {
+            console.log('Лайков нет, загружаем популярные треки');
+            await loadNewTracks();
+        }
         
         listenBtn.style.display = 'none';
         audioPlayer.style.display = 'block';
@@ -51,6 +88,43 @@ async function startRadio() {
         alert('Ошибка при загрузке музыки');
         listenBtn.innerHTML = '🎵 Слушать музыку';
         listenBtn.disabled = false;
+    }
+}
+
+// Загрузка треков на основе лайков пользователя
+async function loadTracksBasedOnLikes() {
+    if (userLikedTracks.length === 0) {
+        await loadNewTracks();
+        return;
+    }
+    
+    console.log('Ищем похожие треки на основе ваших лайков...');
+    
+    // Берем случайный лайкнутый трек для поиска похожих
+    const randomLikedTrack = userLikedTracks[Math.floor(Math.random() * userLikedTracks.length)];
+    
+    // Ищем по артистам из лайкнутых треков
+    let searchQuery = '';
+    if (randomLikedTrack.artists && randomLikedTrack.artists.length > 0) {
+        searchQuery = randomLikedTrack.artists[0]; // Берем первого артиста
+    } else {
+        searchQuery = randomLikedTrack.title; // Или по названию трека
+    }
+    
+    try {
+        const response = await fetch(`/api/similar?query=${encodeURIComponent(searchQuery)}`);
+        const data = await response.json();
+        
+        if (data.tracks && data.tracks.length > 0) {
+            tracksList = data.tracks;
+            console.log('Найдено похожих треков:', tracksList.length);
+        } else {
+            // Если не нашли похожих - грузим популярные
+            await loadNewTracks();
+        }
+    } catch (error) {
+        console.error('Ошибка поиска похожих треков:', error);
+        await loadNewTracks();
     }
 }
 
@@ -188,11 +262,8 @@ async function checkIfLiked() {
 }
 
 // Переключение лайка
-// В функции toggleLike добавьте логирование
 async function toggleLike() {
     if (!currentTrackId || !currentTrackData) return;
-    
-    console.log('Toggling like for track:', currentTrackId, currentTrackData);
     
     const likeBtn = document.getElementById('likeBtn');
     
@@ -207,40 +278,29 @@ async function toggleLike() {
             if (data.status === 'unliked') {
                 likeBtn.innerHTML = '♡';
                 likeBtn.classList.remove('liked');
-                console.log('Track unliked');
+                // Обновляем список предпочтений
+                await loadUserPreferences();
             }
         } else {
-            // УБЕДИТЕСЬ ЧТО ДАННЫЕ ПРАВИЛЬНЫЕ
-            const trackDataToSend = {
-                id: currentTrackId,
-                title: currentTrackData.title || 'Unknown',
-                artists: currentTrackData.artists || ['Unknown Artist'],
-                cover_uri: currentTrackData.cover_uri || null,
-                album: currentTrackData.album || 'Unknown Album'
-            };
-            
-            console.log('Sending track data:', trackDataToSend);
-            
+            // Добавляем лайк
             const response = await fetch(`/api/like/${currentTrackId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(trackDataToSend)
+                body: JSON.stringify(currentTrackData)
             });
-            
             const data = await response.json();
-            console.log('Like response:', data);
             
             if (data.status === 'liked') {
                 likeBtn.innerHTML = '❤️';
                 likeBtn.classList.add('liked');
-                console.log('Track liked successfully');
+                // Обновляем список предпочтений
+                await loadUserPreferences();
             }
         }
     } catch (error) {
         console.error('Ошибка лайка:', error);
-        alert('Ошибка при сохранении лайка');
     }
 }
 

@@ -1,9 +1,10 @@
 import os
-from fastapi import FastAPI, Request, Depends
+from fastapi import FastAPI, Request, Depends, Query
 from fastapi.responses import RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from yandex_music import Client
+import random
 from app import crud
 
 from app.database import get_db, engine
@@ -325,3 +326,63 @@ async def debug_users():
             } for user in users
         ]
     }
+
+
+@app.get("/api/similar")
+async def get_similar_tracks(query: str = Query(...)):
+    try:
+        if not yandex_client:
+            return {"tracks": []}
+        
+        print(f"Searching similar tracks for: {query}")
+        search_result = yandex_client.search(query, type_="track")
+        
+        if not search_result or not search_result.tracks:
+            return {"tracks": []}
+        
+        # Берем случайные треки из результатов
+        all_tracks = search_result.tracks.results
+        random.shuffle(all_tracks)
+        
+        tracks_data = []
+        for track in all_tracks[:15]:
+            # Такой же код обработки треков как в /api/popular
+            album_id = None
+            if hasattr(track, 'albums') and track.albums and len(track.albums) > 0:
+                album_id = track.albums[0].id
+            elif hasattr(track, 'album') and track.album:
+                album_id = track.album.id
+            
+            track_id = f"{track.id}_{album_id}" if album_id else str(track.id)
+            
+            album_title = "Неизвестный альбом"
+            if hasattr(track, 'albums') and track.albums and len(track.albums) > 0:
+                album_title = track.albums[0].title
+            elif hasattr(track, 'album') and track.album:
+                album_title = track.album.title
+            
+            artists = []
+            if hasattr(track, 'artists') and track.artists:
+                for artist in track.artists:
+                    if hasattr(artist, 'name'):
+                        artists.append(artist.name)
+            
+            cover_uri = None
+            if hasattr(track, 'cover_uri') and track.cover_uri:
+                cover_uri = f"https://{track.cover_uri.replace('%%', '300x300')}"
+            
+            track_info = {
+                "id": track_id,
+                "title": track.title,
+                "artists": artists,
+                "cover_uri": cover_uri,
+                "album": album_title
+            }
+            tracks_data.append(track_info)
+        
+        print(f"Found {len(tracks_data)} similar tracks")
+        return {"tracks": tracks_data}
+        
+    except Exception as e:
+        print(f"Error getting similar tracks: {e}")
+        return {"tracks": []}
