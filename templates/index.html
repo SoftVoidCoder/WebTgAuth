@@ -30,7 +30,8 @@
         <div class="floating-element"></div>
     </div>
     
-    <h1>🎵 Music App</h1>
+    <h1>🎵 Tg Music</h1>
+    
     
     {% if not user_data %}
         <div class="auth-prompt">
@@ -105,13 +106,5 @@
 <script>
 // Добавляем класс для body только на главной странице
 document.body.classList.add('home-body');
-
-// Поднимаем контент выше
-document.addEventListener('DOMContentLoaded', function() {
-    const hero = document.querySelector('.hero');
-    if (hero) {
-        hero.style.paddingTop = '80px';
-    }
-});
 </script>
 {% endblock %}
