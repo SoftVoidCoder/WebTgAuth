@@ -1,11 +1,12 @@
 let likedTracks = [];
 let currentTrackId = null;
+let currentTrackIndex = -1;
 let isPlaying = false;
 let audioElement = null;
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', function() {
-    audioElement = document.getElementById('audioElement');
+    audioElement = document.getElementById('compactAudioElement');
     setupAudioEvents();
     loadLikedTracks();
 });
@@ -13,18 +14,18 @@ document.addEventListener('DOMContentLoaded', function() {
 // Настройка событий аудио
 function setupAudioEvents() {
     audioElement.onended = function() {
-        isPlaying = false;
-        updatePlayButton();
+        console.log('Трек закончился, включаем следующий');
+        playNextLikedTrack();
     };
     
     audioElement.onpause = () => {
         isPlaying = false;
-        updatePlayButton();
+        updateCompactPlayButton();
     };
     
     audioElement.onplay = () => {
         isPlaying = true;
-        updatePlayButton();
+        updateCompactPlayButton();
     };
 }
 
@@ -46,100 +47,109 @@ async function loadLikedTracks() {
     }
 }
 
-// Отображение лайкнутых треков
+// Отображение лайкнутых треков в столбик
 function displayLikedTracks() {
-    const tracksGrid = document.getElementById('likedTracksGrid');
+    const tracksList = document.getElementById('likedTracksList');
     const noTracksMessage = document.getElementById('noTracksMessage');
     
-    tracksGrid.innerHTML = '';
+    tracksList.innerHTML = '';
     noTracksMessage.style.display = 'none';
     
     likedTracks.forEach((track, index) => {
-        const trackCard = createTrackCard(track, index);
-        tracksGrid.appendChild(trackCard);
+        const trackItem = createTrackItem(track, index);
+        tracksList.appendChild(trackItem);
     });
 }
 
-// Показать сообщение когда нет треков
-function showNoTracksMessage() {
-    const tracksGrid = document.getElementById('likedTracksGrid');
-    const noTracksMessage = document.getElementById('noTracksMessage');
+// Создание элемента трека в столбик
+function createTrackItem(track, index) {
+    const item = document.createElement('div');
+    item.className = 'track-item';
+    item.setAttribute('data-track-id', track.id);
+    item.setAttribute('data-track-index', index);
     
-    tracksGrid.innerHTML = '';
-    noTracksMessage.style.display = 'block';
-}
-
-// Создание карточки трека
-function createTrackCard(track, index) {
-    const card = document.createElement('div');
-    card.className = 'track-card';
-    card.setAttribute('data-track-id', track.id);
-    card.setAttribute('data-track-index', index);
+    const artists = Array.isArray(track.artists) ? track.artists.join(', ') : track.artists;
     
-    card.innerHTML = `
-        <div class="track-image">
+    item.innerHTML = `
+        <div class="track-item-image">
             ${track.cover_uri ? 
-                `<img src="${track.cover_uri}" alt="${track.title}" class="track-cover">` : 
-                `<div class="track-placeholder">🎵</div>`
+                `<img src="${track.cover_uri}" alt="${track.title}" class="track-item-cover">` : 
+                `<div class="track-item-placeholder">🎵</div>`
             }
         </div>
         
-        <div class="track-info">
-            <h3 class="track-title">${track.title}</h3>
-            <p class="track-artist">${Array.isArray(track.artists) ? track.artists.join(', ') : track.artists}</p>
-            <p class="track-album">${track.album || 'Неизвестный альбом'}</p>
+        <div class="track-item-info">
+            <div class="track-item-title">${track.title}</div>
+            <div class="track-item-artist">${artists}</div>
+            <div class="track-item-album">${track.album || 'Неизвестный альбом'}</div>
         </div>
         
-        <div class="track-actions">
-            <button class="play-track-btn" onclick="playLikedTrack(this)" title="Воспроизвести">
+        <div class="track-item-actions">
+            <button class="play-item-btn" onclick="playLikedTrackFromList(${index})" title="Воспроизвести">
                 ▶
             </button>
-            <button class="remove-track-btn" onclick="removeLikedTrack('${track.id}')" title="Удалить">
+            <button class="remove-item-btn" onclick="removeLikedTrack('${track.id}')" title="Удалить">
                 ❌
             </button>
         </div>
     `;
     
-    return card;
+    return item;
 }
 
-// Воспроизведение лайкнутого трека
-async function playLikedTrack(button) {
-    const trackCard = button.closest('.track-card');
-    const trackId = trackCard.dataset.trackId;
-    const trackIndex = parseInt(trackCard.dataset.trackIndex);
-    const track = likedTracks[trackIndex];
+// Воспроизведение трека из списка
+async function playLikedTrackFromList(index) {
+    if (index < 0 || index >= likedTracks.length) return;
     
-    await playTrackById(trackId, track.title, track.artists, track.cover_uri, track);
+    const track = likedTracks[index];
+    currentTrackIndex = index;
+    
+    await playTrackById(track.id, track.title, track.artists, track.cover_uri);
+}
+
+// Воспроизведение следующего лайкнутого трека
+function playNextLikedTrack() {
+    if (likedTracks.length === 0) return;
+    
+    const nextIndex = (currentTrackIndex + 1) % likedTracks.length;
+    playLikedTrackFromList(nextIndex);
+}
+
+// Воспроизведение предыдущего лайкнутого трека
+function playPrevLikedTrack() {
+    if (likedTracks.length === 0) return;
+    
+    const prevIndex = (currentTrackIndex - 1 + likedTracks.length) % likedTracks.length;
+    playLikedTrackFromList(prevIndex);
 }
 
 // Воспроизведение трека по ID
-async function playTrackById(trackId, title, artists, coverUri, trackData) {
-    const audioPlayer = document.getElementById('audioPlayer');
-    const nowPlayingTitle = document.getElementById('nowPlayingTitle');
-    const nowPlayingArtist = document.getElementById('nowPlayingArtist');
-    const trackCover = document.getElementById('trackCover');
-    const likeBtn = document.getElementById('likeBtn');
+async function playTrackById(trackId, title, artists, coverUri) {
+    const compactPlayer = document.getElementById('compactPlayer');
+    const compactTitle = document.getElementById('compactTitle');
+    const compactArtist = document.getElementById('compactArtist');
+    const compactCover = document.getElementById('compactCover');
+    const compactLikeBtn = document.getElementById('compactLikeBtn');
     
     currentTrackId = trackId;
     
-    // Показываем плеер
-    audioPlayer.style.display = 'block';
+    // Показываем компактный плеер
+    compactPlayer.style.display = 'block';
     
     // Обновляем информацию о треке
-    nowPlayingTitle.textContent = title;
-    nowPlayingArtist.textContent = Array.isArray(artists) ? artists.join(', ') : artists;
+    compactTitle.textContent = title;
+    compactArtist.textContent = Array.isArray(artists) ? artists.join(', ') : artists;
     
     // Обновляем обложку
     if (coverUri) {
-        trackCover.innerHTML = `<img src="${coverUri}" alt="${title}" class="cover-image">`;
+        compactCover.innerHTML = `<img src="${coverUri}" alt="${title}" class="compact-cover-image">`;
     } else {
-        trackCover.innerHTML = '<div class="cover-placeholder">🎵</div>';
+        compactCover.innerHTML = '<div class="compact-placeholder">🎵</div>';
     }
     
     // Устанавливаем лайк как активный
-    likeBtn.innerHTML = '❤️';
-    likeBtn.classList.add('liked');
+    compactLikeBtn.innerHTML = '❤️';
+    compactLikeBtn.classList.add('liked');
     
     try {
         const response = await fetch(`/music/track/${trackId}`);
@@ -155,7 +165,8 @@ async function playTrackById(trackId, title, artists, coverUri, trackData) {
         
     } catch (error) {
         console.error('Ошибка:', error);
-        alert('Ошибка при загрузке трека: ' + error.message);
+        // При ошибке пробуем следующий трек
+        setTimeout(() => playNextLikedTrack(), 1000);
     }
 }
 
@@ -175,11 +186,20 @@ async function removeLikedTrack(trackId) {
             // Обновляем список треков
             await loadLikedTracks();
             
-            // Если удаляемый трек сейчас играет - останавливаем
+            // Если удаляемый трек сейчас играет - останавливаем и включаем следующий
             if (currentTrackId === trackId) {
                 audioElement.pause();
                 audioElement.src = '';
                 currentTrackId = null;
+                currentTrackIndex = -1;
+                
+                // Если есть другие треки - включаем следующий
+                if (likedTracks.length > 0) {
+                    playNextLikedTrack();
+                } else {
+                    // Скрываем плеер если треков не осталось
+                    document.getElementById('compactPlayer').style.display = 'none';
+                }
             }
         }
     } catch (error) {
@@ -188,8 +208,8 @@ async function removeLikedTrack(trackId) {
     }
 }
 
-// Переключение воспроизведения/паузы
-function togglePlayPause() {
+// Переключение воспроизведения/паузы в компактном плеере
+function toggleCompactPlayPause() {
     if (isPlaying) {
         audioElement.pause();
     } else {
@@ -197,44 +217,32 @@ function togglePlayPause() {
     }
 }
 
-// Обновление кнопки воспроизведения
-function updatePlayButton() {
-    const playPauseBtn = document.getElementById('playPauseBtn');
-    const playPauseIcon = document.getElementById('playPauseIcon');
+// Обновление кнопки воспроизведения в компактном плеере
+function updateCompactPlayButton() {
+    const playBtn = document.getElementById('compactPlayBtn');
+    const playIcon = document.getElementById('compactPlayIcon');
     
     if (isPlaying) {
-        playPauseIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
-        playPauseBtn.setAttribute('title', 'Пауза');
+        playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+        playBtn.setAttribute('title', 'Пауза');
     } else {
-        playPauseIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
-        playPauseBtn.setAttribute('title', 'Воспроизвести');
+        playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+        playBtn.setAttribute('title', 'Воспроизвести');
     }
 }
 
-// Переключение лайка
-async function toggleLike() {
+// Переключение лайка в компактном плеере
+async function toggleCompactLike() {
     if (!currentTrackId) return;
     
-    const likeBtn = document.getElementById('likeBtn');
+    await removeLikedTrack(currentTrackId);
+}
+
+// Показать сообщение когда нет треков
+function showNoTracksMessage() {
+    const tracksList = document.getElementById('likedTracksList');
+    const noTracksMessage = document.getElementById('noTracksMessage');
     
-    try {
-        if (likeBtn.classList.contains('liked')) {
-            // Удаляем лайк
-            await removeLikedTrack(currentTrackId);
-        }
-    } catch (error) {
-        console.error('Ошибка лайка:', error);
-    }
-}
-
-// Воспроизведение следующего трека
-function playNextTrack() {
-    // Для профиля можно сделать последовательное воспроизведение
-    // или оставить как есть
-    console.log('Next track functionality for profile');
-}
-
-// Воспроизведение предыдущего трека
-function playPrevTrack() {
-    console.log('Previous track functionality for profile');
+    tracksList.innerHTML = '';
+    noTracksMessage.style.display = 'block';
 }

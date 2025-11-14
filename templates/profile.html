@@ -9,117 +9,87 @@
 
 {% block content %}
 <div class="profile-container">
+    <!-- ШАПКА ПРОФИЛЯ С АВАТАРКОЙ -->
     <div class="profile-header">
-        {% if user_data.photo_url %}
-            <img src="{{ user_data.photo_url }}" alt="Profile" class="profile-avatar">
-        {% else %}
-            <div class="default-avatar" style="width: 80px; height: 80px; font-size: 2rem;">
-                {{ user_data.first_name[0] }}
-            </div>
-        {% endif %}
-        <div class="profile-info">
-            <h2>{{ user_data.first_name }} {{ user_data.last_name or '' }}</h2>
-            <p>@{{ user_data.username or 'username не указан' }}</p>
-            {% if db_user and db_user.created_at %}
-            <p style="color: #00c6ff; font-size: 0.9rem; margin-top: 0.5rem;">
-                ✅ В базе данных с {{ db_user.created_at.strftime('%d.%m.%Y') }}
-            </p>
+        <div class="avatar-section">
+            {% if user_data.photo_url %}
+                <img src="{{ user_data.photo_url }}" alt="Profile" class="profile-avatar">
+            {% else %}
+                <div class="default-avatar">
+                    {{ user_data.first_name[0] }}
+                </div>
             {% endif %}
         </div>
-    </div>
-
-    <div class="profile-details">
-        <div class="detail-item">
-            <span>ID в Telegram:</span>
-            <span>{{ user_data.id }}</span>
+        <div class="profile-info">
+            <h2>{{ user_data.first_name }} {{ user_data.last_name or '' }}</h2>
+            <p class="username">@{{ user_data.username or 'username не указан' }}</p>
+            <div class="profile-stats">
+                <span class="stat">ID: {{ user_data.id }}</span>
+                {% if db_user %}
+                <span class="stat">С {{ db_user.created_at.strftime('%d.%m.%Y') }}</span>
+                {% endif %}
+            </div>
         </div>
-        {% if db_user %}
-        <div class="detail-item">
-            <span>ID в базе:</span>
-            <span>{{ db_user.id }}</span>
-        </div>
-        {% endif %}
-        <div class="detail-item">
-            <span>Имя:</span>
-            <span>{{ user_data.first_name }}</span>
-        </div>
-        {% if user_data.last_name %}
-        <div class="detail-item">
-            <span>Фамилия:</span>
-            <span>{{ user_data.last_name }}</span>
-        </div>
-        {% endif %}
-        {% if user_data.username %}
-        <div class="detail-item">
-            <span>Username:</span>
-            <span>@{{ user_data.username }}</span>
-        </div>
-        {% endif %}
-        {% if db_user and db_user.created_at %}
-        <div class="detail-item">
-            <span>Зарегистрирован:</span>
-            <span>{{ db_user.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
-        </div>
-        {% endif %}
     </div>
 
     <!-- РАЗДЕЛ С ЛАЙКНУТЫМИ ТРЕКАМИ -->
     <div class="liked-tracks-section" id="liked">
         <h3 class="section-title">❤️ Мне нравится</h3>
-        <div class="tracks-grid" id="likedTracksGrid">
+        
+        <div class="tracks-list" id="likedTracksList">
             <!-- Треки будут загружены через JavaScript -->
         </div>
+        
         <div class="no-tracks" id="noTracksMessage" style="display: none;">
-            <p>У вас пока нет liked треков</p>
-            <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">
-                Нажимайте ❤️ на треках чтобы добавить их сюда
-            </p>
+            <p>У вас пока нет понравившихся треков</p>
+            <p class="hint">Нажимайте ❤️ на треках чтобы добавить их сюда</p>
         </div>
     </div>
 
     <a href="/auth/logout" class="logout-btn">Выйти</a>
 </div>
 
-<!-- АУДИО ПЛЕЕР ДЛЯ ПРОФИЛЯ -->
-<div class="audio-player" id="audioPlayer" style="display: none;">
-    <div class="player-main">
-        <div class="player-info">
-            <div class="track-cover" id="trackCover">
-                <div class="cover-placeholder">🎵</div>
+<!-- КОМПАКТНЫЙ ПЛЕЕР -->
+<div class="compact-player" id="compactPlayer" style="display: none;">
+    <div class="compact-player-main">
+        <div class="compact-track-info">
+            <div class="compact-cover" id="compactCover">
+                <div class="compact-placeholder">🎵</div>
             </div>
-            <div class="track-details">
-                <div class="track-title" id="nowPlayingTitle">Выберите трек</div>
-                <div class="track-artist" id="nowPlayingArtist">Исполнитель</div>
+            <div class="compact-details">
+                <div class="compact-title" id="compactTitle">Название трека</div>
+                <div class="compact-artist" id="compactArtist">Исполнитель</div>
             </div>
-            <button class="like-btn" id="likeBtn" onclick="toggleLike()">
-                ♡
-            </button>
         </div>
         
-        <div class="player-controls">
-            <button class="control-btn prev-btn" onclick="playPrevTrack()" title="Предыдущий">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <div class="compact-controls">
+            <button class="compact-btn prev-btn" onclick="playPrevLikedTrack()" title="Предыдущий">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
                 </svg>
             </button>
             
-            <button class="control-btn play-btn" id="playPauseBtn" onclick="togglePlayPause()" title="Воспроизвести/Пауза">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" id="playPauseIcon">
+            <button class="compact-btn play-btn" id="compactPlayBtn" onclick="toggleCompactPlayPause()" title="Воспроизвести/Пауза">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" id="compactPlayIcon">
                     <path d="M8 5v14l11-7z"/>
                 </svg>
             </button>
             
-            <button class="control-btn next-btn" onclick="playNextTrack()" title="Следующий">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <button class="compact-btn next-btn" onclick="playNextLikedTrack()" title="Следующий">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
                 </svg>
             </button>
         </div>
         
-        <audio class="audio-element" id="audioElement">
-            Ваш браузер не поддерживает аудио элементы.
-        </audio>
+        <button class="compact-like-btn" id="compactLikeBtn" onclick="toggleCompactLike()" title="Убрать из понравившихся">
+            ❤️
+        </button>
     </div>
+    
+    <audio class="audio-element" id="compactAudioElement">
+        Ваш браузер не поддерживает аудио элементы.
+    </audio>
 </div>
 
 <script src="/static/js/profile.js"></script>

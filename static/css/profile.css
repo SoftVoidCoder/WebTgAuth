@@ -2,36 +2,94 @@
 .profile-container {
     background: rgba(255, 255, 255, 0.05);
     border-radius: 15px;
-    padding: 2rem;
-    margin: 2rem auto;
+    padding: 1.5rem;
+    margin: 1rem auto;
     max-width: 800px;
     border: 1px solid #2a2a2a;
 }
 
+/* Шапка профиля с аватаркой */
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.avatar-section {
+    flex-shrink: 0;
+}
+
+.profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid #ff6b6b;
+}
+
+.default-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff6b6b, #ffa726);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 2rem;
+    border: 3px solid #ff6b6b;
+}
+
+.profile-info h2 {
+    color: white;
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+}
+
+.username {
+    color: #ff6b6b;
+    margin: 0 0 1rem 0;
+    font-size: 1rem;
+}
+
+.profile-stats {
+    display: flex;
+    gap: 1rem;
+}
+
+.stat {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    color: #b0b0b0;
+}
+
+/* Секция с лайкнутыми треками */
 .liked-tracks-section {
     margin: 2rem 0;
-    padding: 1.5rem;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 12px;
-    border: 1px solid #2a2a2a;
 }
 
 .section-title {
     color: #ff6b6b;
     margin-bottom: 1.5rem;
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     font-weight: 600;
-    border-left: 4px solid #ff6b6b;
-    padding-left: 1rem;
+    padding-left: 0.5rem;
+    border-left: 3px solid #ff6b6b;
 }
 
-.tracks-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 1rem;
+/* Список треков в столбик */
+.tracks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
 }
 
-.track-card {
+.track-item {
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -42,94 +100,230 @@
     border: 1px solid transparent;
 }
 
-.track-card:hover {
+.track-item:hover {
     background: rgba(255, 255, 255, 0.08);
     border-color: #ff6b6b;
-    transform: translateY(-2px);
+    transform: translateY(-1px);
 }
 
-.track-image {
+.track-item-image {
     flex-shrink: 0;
 }
 
-.track-cover {
-    width: 60px;
-    height: 60px;
+.track-item-cover {
+    width: 50px;
+    height: 50px;
     border-radius: 8px;
     object-fit: cover;
 }
 
-.track-placeholder {
-    width: 60px;
-    height: 60px;
+.track-item-placeholder {
+    width: 50px;
+    height: 50px;
     border-radius: 8px;
     background: linear-gradient(135deg, #ff6b6b, #ffa726);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 1.2rem;
 }
 
-.track-info {
+.track-item-info {
     flex: 1;
     min-width: 0;
 }
 
-.track-title {
+.track-item-title {
     color: white;
     font-size: 1rem;
     font-weight: 600;
-    margin: 0 0 0.3rem 0;
+    margin-bottom: 0.2rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.track-artist {
+.track-item-artist {
     color: #ff6b6b;
     font-size: 0.9rem;
-    margin: 0 0 0.2rem 0;
+    margin-bottom: 0.2rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.track-album {
+.track-item-album {
     color: #888;
     font-size: 0.8rem;
-    margin: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.track-actions {
+.track-item-actions {
     display: flex;
     gap: 0.5rem;
     flex-shrink: 0;
 }
 
-.play-track-btn, .remove-track-btn {
+.play-item-btn, .remove-item-btn {
     background: rgba(255, 255, 255, 0.1);
     border: none;
     color: white;
-    padding: 8px;
+    padding: 8px 12px;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s;
     font-size: 0.9rem;
 }
 
-.play-track-btn:hover {
+.play-item-btn:hover {
     background: rgba(255, 107, 107, 0.3);
     transform: scale(1.1);
 }
 
-.remove-track-btn:hover {
+.remove-item-btn:hover {
     background: rgba(255, 0, 0, 0.3);
     transform: scale(1.1);
 }
 
+/* Компактный плеер */
+.compact-player {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(20, 20, 20, 0.95);
+    backdrop-filter: blur(20px);
+    padding: 0.8rem 1.5rem;
+    border-top: 2px solid #ff6b6b;
+    z-index: 1000;
+    display: none;
+}
+
+.compact-player-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.compact-track-info {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.compact-cover {
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.compact-cover-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.compact-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #ff6b6b, #ffa726);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.compact-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.compact-title {
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.compact-artist {
+    color: #ff6b6b;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.compact-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 0 1rem;
+}
+
+.compact-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.compact-btn:hover {
+    background: rgba(255, 107, 107, 0.3);
+    transform: scale(1.1);
+}
+
+.compact-btn.play-btn {
+    background: linear-gradient(135deg, #ff6b6b, #ffa726);
+    width: 35px;
+    height: 35px;
+}
+
+.compact-btn.play-btn:hover {
+    background: linear-gradient(135deg, #ff5252, #ff9800);
+}
+
+.compact-like-btn {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: all 0.3s;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.compact-like-btn:hover {
+    background: rgba(255, 107, 107, 0.1);
+    transform: scale(1.1);
+}
+
+.compact-like-btn.liked {
+    color: #ff6b6b;
+}
+
+/* Сообщение когда нет треков */
 .no-tracks {
     text-align: center;
     padding: 3rem 2rem;
@@ -140,18 +334,58 @@
     margin: 0;
 }
 
+.hint {
+    color: #666;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+/* Кнопка выхода */
+.logout-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+    margin-top: 1rem;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.logout-btn:hover {
+    background: #c82333;
+}
+
 /* Адаптивность */
 @media (max-width: 768px) {
     .profile-container {
-        padding: 1.5rem;
-        margin: 1rem auto;
+        padding: 1rem;
+        margin: 0.5rem auto;
     }
     
-    .tracks-grid {
-        grid-template-columns: 1fr;
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
     }
     
-    .track-card {
-        padding: 0.8rem;
+    .profile-stats {
+        justify-content: center;
+    }
+    
+    .compact-player-main {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .compact-controls {
+        margin: 0;
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        margin-top: 0.5rem;
     }
 }
