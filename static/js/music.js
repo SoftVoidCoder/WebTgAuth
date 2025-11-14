@@ -95,7 +95,7 @@ function hidePreferences() {
 }
 
 // Применить настройки
-function applyPreferences() {
+async function applyPreferences() {
     const selectedPreference = document.querySelector('input[name="musicPreference"]:checked');
     if (selectedPreference) {
         musicPreference = selectedPreference.value;
@@ -106,10 +106,8 @@ function applyPreferences() {
         
         hidePreferences();
         
-        // Если музыка играет, перезапускаем с новыми настройками
-        if (isPlaying) {
-            restartRadioWithNewPreferences();
-        }
+        // Сразу загружаем и воспроизводим треки по выбранной настройке
+        await loadAndPlayByPreference();
     }
 }
 
@@ -128,9 +126,49 @@ async function restartRadioWithNewPreferences() {
         await playTrack(tracksList[0]);
     }
 }
-
+async function loadAndPlayByPreference() {
+    const listenBtn = document.querySelector('.listen-btn');
+    const audioPlayer = document.getElementById('audioPlayer');
+    
+    // Показываем состояние загрузки
+    listenBtn.innerHTML = '🔄 Загружаем...';
+    listenBtn.disabled = true;
+    
+    try {
+        // Останавливаем текущее воспроизведение
+        if (audioElement) {
+            audioElement.pause();
+            isPlaying = false;
+        }
+        
+        // Загружаем треки по выбранной настройке
+        await loadTracksByPreference();
+        
+        // Показываем плеер
+        audioPlayer.style.display = 'block';
+        
+        if (tracksList.length > 0) {
+            // Воспроизводим первый трек
+            await playTrack(tracksList[0]);
+            listenBtn.innerHTML = '⏸️ Пауза';
+            listenBtn.classList.add('playing');
+        } else {
+            listenBtn.innerHTML = '🎵 Слушать музыку';
+            alert('Не удалось загрузить треки по выбранной настройке');
+        }
+        
+    } catch (error) {
+        console.error('Ошибка загрузки:', error);
+        listenBtn.innerHTML = '🎵 Слушать музыку';
+        alert('Ошибка загрузки треков');
+    } finally {
+        listenBtn.disabled = false;
+    }
+}
 // Загрузка треков по выбранной настройке
 async function loadTracksByPreference() {
+    console.log('Загружаем треки по настройке:', musicPreference);
+    
     switch (musicPreference) {
         case 'liked':
             await loadTracksBasedOnLikes();
@@ -144,6 +182,8 @@ async function loadTracksByPreference() {
         default:
             await loadTracksBasedOnLikes();
     }
+    
+    console.log(`Загружено ${tracksList.length} треков по настройке "${musicPreference}"`);
 }
 
 // Загрузка треков для открытия нового
@@ -153,13 +193,18 @@ async function loadDiscoveryTracks() {
     // Используем случайные популярные запросы для разнообразия
     const discoveryQueries = [
         "новинки музыки 2024",
-        "русская музыка 2024",
+        "русская музыка 2024", 
         "зарубежная музыка 2024",
         "популярные треки",
-        "хиты недели"
+        "хиты недели",
+        "новые релизы",
+        "топ чарты",
+        "музыкальные новинки"
     ];
     
     const randomQuery = discoveryQueries[Math.floor(Math.random() * discoveryQueries.length)];
+    console.log('Ищем по запросу:', randomQuery);
+    
     const foundTracks = await searchTracks(randomQuery);
     
     if (foundTracks.length > 0) {
@@ -167,6 +212,7 @@ async function loadDiscoveryTracks() {
         console.log('Найдено незнакомых треков:', tracksList.length);
     } else {
         // Если не нашли, используем популярные
+        console.log('Незнакомые треки не найдены, используем популярные');
         await loadNewTracks();
     }
 }
@@ -220,6 +266,7 @@ async function startRadio() {
 // Загрузка треков на основе лайков пользователя
 async function loadTracksBasedOnLikes() {
     if (userLikedTracks.length === 0) {
+        console.log('Лайков нет, используем популярные треки');
         await loadNewTracks();
         return;
     }
@@ -230,11 +277,14 @@ async function loadTracksBasedOnLikes() {
     const userPreferences = analyzeUserPreferences();
     console.log('Найдены предпочтения:', userPreferences);
     
-    // Стратегия 1: По самым частым артистам (самая точная)
+    // Пробуем разные стратегии поиска
+    let foundTracks = [];
+    
+    // Стратегия 1: По самым частым артистам
     if (userPreferences.topArtists.length > 0) {
         const randomArtist = userPreferences.topArtists[0];
         console.log(`Ищем треки артиста: ${randomArtist}`);
-        const foundTracks = await searchTracks(randomArtist);
+        foundTracks = await searchTracks(randomArtist);
         if (foundTracks.length > 0) {
             tracksList = foundTracks;
             console.log('Найдено треков по артисту:', tracksList.length);
@@ -246,7 +296,7 @@ async function loadTracksBasedOnLikes() {
     if (userPreferences.possibleGenres.length > 0) {
         for (let genre of userPreferences.possibleGenres) {
             console.log(`Ищем треки жанра: ${genre}`);
-            const foundTracks = await searchTracks(genre + ' 2024');
+            foundTracks = await searchTracks(genre + ' 2024');
             if (foundTracks.length > 0) {
                 tracksList = foundTracks;
                 console.log('Найдено треков по жанру:', tracksList.length);
@@ -259,7 +309,7 @@ async function loadTracksBasedOnLikes() {
     if (userPreferences.topArtists.length > 1) {
         const similarArtist = userPreferences.topArtists[1];
         console.log(`Ищем похожих артистов: ${similarArtist}`);
-        const foundTracks = await searchTracks(similarArtist);
+        foundTracks = await searchTracks(similarArtist);
         if (foundTracks.length > 0) {
             tracksList = foundTracks;
             console.log('Найдено треков похожих артистов:', tracksList.length);
