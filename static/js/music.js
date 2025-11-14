@@ -260,6 +260,7 @@ async function loadNewTracks() {
     }
 }
 
+
 // Воспроизведение трека
 async function playTrack(track) {
     currentTrackData = track;
@@ -269,23 +270,30 @@ async function playTrack(track) {
     checkIfLiked();
 }
 
+
 // Воспроизведение следующего трека
 async function playNextTrack() {
-    if (tracksList.length === 0) {
-        await loadNewTracks();
-    }
+    // Всегда загружаем новые треки по жанрам
+    await loadTracksBasedOnLikes();
     
     if (tracksList.length > 0) {
         const randomIndex = Math.floor(Math.random() * tracksList.length);
         await playTrack(tracksList[randomIndex]);
+    } else {
+        // Если не нашли по жанрам - грузим популярные
+        await loadNewTracks();
+        if (tracksList.length > 0) {
+            const randomIndex = Math.floor(Math.random() * tracksList.length);
+            await playTrack(tracksList[randomIndex]);
+        }
     }
 }
 
 // Воспроизведение предыдущего трека
 async function playPrevTrack() {
-    await playNextTrack(); // Всегда новые треки
+    // Для предыдущего тоже новые треки
+    await playNextTrack();
 }
-
 // Воспроизведение трека по ID
 async function playTrackById(trackId, title, artist, coverUri, trackData = null) {
     const audioPlayer = document.getElementById('audioPlayer');
