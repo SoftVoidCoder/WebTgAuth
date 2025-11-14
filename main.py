@@ -11,7 +11,11 @@ from app import models
 from app.dependencies import get_current_user
 from app.routers import auth, users, music
 
-models.Base.metadata.create_all(bind=engine)
+# ПРИНУДИТЕЛЬНО ПЕРЕСОЗДАЕМ ВСЕ ТАБЛИЦЫ
+print("🔄 Пересоздаем таблицы БД...")
+models.Base.metadata.drop_all(bind=engine)  # Удаляем старые таблицы
+models.Base.metadata.create_all(bind=engine)  # Создаем новые таблицы
+print("✅ Таблицы БД успешно созданы")
 
 app = FastAPI(title="Music App")
 
@@ -45,7 +49,7 @@ async def home(request: Request, current_user: dict = Depends(get_current_user))
         "bot_username": BOT_USERNAME
     })
 
-# В main.py заменяем эндпоинт /api/popular
+# API для получения популярных треков
 @app.get("/api/popular")
 async def get_popular_tracks():
     try:
@@ -121,7 +125,6 @@ async def get_popular_tracks():
         print(f"Error getting popular tracks: {e}")
         return {"tracks": []}
     
-    
 @app.get("/profile")
 async def profile(request: Request, current_user: dict = Depends(get_current_user)):
     if not current_user:
@@ -133,7 +136,6 @@ async def profile(request: Request, current_user: dict = Depends(get_current_use
         "db_user": current_user["db_user"],
         "bot_username": BOT_USERNAME
     })
-
 
 @app.post("/api/like/{track_id}")
 async def like_track(
@@ -201,32 +203,6 @@ async def unlike_track(
         
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
-
-@app.get("/api/liked-tracks")
-async def get_liked_tracks(current_user: dict = Depends(get_current_user)):
-    if not current_user:
-        return JSONResponse({"error": "Не авторизован"}, status_code=401)
-    
-    db = next(get_db())
-    user_id = current_user["db_user"].id
-    
-    try:
-        liked_tracks = crud.get_liked_tracks(db, user_id)
-        tracks_data = []
-        for track in liked_tracks:
-            tracks_data.append({
-                "id": track.track_id,
-                "title": track.track_title,
-                "artists": track.track_artists.split(','),
-                "cover_uri": track.track_cover_uri,
-                "album": track.track_album
-            })
-        
-        return {"tracks": tracks_data}
-        
-    except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
-    
 
 @app.get("/api/is-liked/{track_id}")
 async def is_track_liked(
