@@ -49,7 +49,6 @@
 .track-info {
     flex: 1;
     min-width: 0;
-    margin-right: 10px;
 }
 
 .track-title {
@@ -158,6 +157,23 @@
 
 .audio-element {
     display: none;
+}
+
+/* УБИРАЕМ ЛИШНЮЮ ИНФУ */
+.track-additional-info {
+    display: none !important;
+}
+
+.current-track-info {
+    display: none !important;
+}
+
+.now-playing-label {
+    display: none !important;
+}
+
+.track-full-info {
+    display: none !important;
 }
 
 /* Остальные стили без изменений */
