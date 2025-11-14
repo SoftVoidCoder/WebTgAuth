@@ -44,3 +44,48 @@ def get_or_create_user(db: Session, telegram_data: dict):
         return create_user(db, telegram_data)
     
 
+
+def get_liked_tracks(db: Session, user_id: int):
+    return db.query(models.LikedTrack).filter(models.LikedTrack.user_id == user_id).all()
+
+def add_liked_track(db: Session, user_id: int, track_data: dict):
+    # Проверяем нет ли уже этого трека в лайках
+    existing = db.query(models.LikedTrack).filter(
+        models.LikedTrack.user_id == user_id,
+        models.LikedTrack.track_id == track_data['id']
+    ).first()
+    
+    if existing:
+        return existing  # Уже есть в лайках
+    
+    liked_track = models.LikedTrack(
+        user_id=user_id,
+        track_id=track_data['id'],
+        track_title=track_data['title'],
+        track_artists=','.join(track_data['artists']),  # Сохраняем как строку
+        track_cover_uri=track_data.get('cover_uri'),
+        track_album=track_data.get('album', 'Неизвестный альбом')
+    )
+    db.add(liked_track)
+    db.commit()
+    db.refresh(liked_track)
+    return liked_track
+
+def remove_liked_track(db: Session, user_id: int, track_id: str):
+    liked_track = db.query(models.LikedTrack).filter(
+        models.LikedTrack.user_id == user_id,
+        models.LikedTrack.track_id == track_id
+    ).first()
+    
+    if liked_track:
+        db.delete(liked_track)
+        db.commit()
+        return True
+    return False
+
+def is_track_liked(db: Session, user_id: int, track_id: str):
+    return db.query(models.LikedTrack).filter(
+        models.LikedTrack.user_id == user_id,
+        models.LikedTrack.track_id == track_id
+    ).first() is not None
+

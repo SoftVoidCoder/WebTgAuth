@@ -2,6 +2,7 @@ let currentTrackId = null;
 let isPlaying = false;
 let tracksList = [];
 let audioElement = null;
+let currentTrackData = null;
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', function() {
@@ -12,7 +13,6 @@ document.addEventListener('DOMContentLoaded', function() {
 // Настройка событий аудио
 function setupAudioEvents() {
     audioElement.onended = async function() {
-        console.log('Трек закончился, загружаем следующий');
         await playNextTrack();
     };
     
@@ -25,6 +25,10 @@ function setupAudioEvents() {
         isPlaying = true;
         updatePlayButton();
     };
+    
+    audioElement.ontimeupdate = function() {
+        updateProgress();
+    };
 }
 
 // Запуск радио
@@ -36,16 +40,13 @@ async function startRadio() {
     listenBtn.disabled = true;
     
     try {
-        // Загружаем первые треки
         await loadNewTracks();
         
-        // Скрываем кнопку и показываем плеер
         listenBtn.style.display = 'none';
         audioPlayer.style.display = 'block';
         
-        // Автоматически играем первый трек
         if (tracksList.length > 0) {
-            await playTrackById(tracksList[0].id, tracksList[0].title, tracksList[0].artists.join(', '), tracksList[0].cover_uri);
+            await playTrack(tracksList[0]);
         }
         
     } catch (error) {
@@ -70,6 +71,15 @@ async function loadNewTracks() {
     }
 }
 
+// Воспроизведение трека
+async function playTrack(track) {
+    currentTrackData = track;
+    currentTrackId = track.id;
+    
+    await playTrackById(track.id, track.title, track.artists.join(', '), track.cover_uri);
+    checkIfLiked();
+}
+
 // Воспроизведение следующего трека
 async function playNextTrack() {
     if (tracksList.length === 0) {
@@ -77,18 +87,14 @@ async function playNextTrack() {
     }
     
     if (tracksList.length > 0) {
-        // Берем случайный трек из списка
         const randomIndex = Math.floor(Math.random() * tracksList.length);
-        const track = tracksList[randomIndex];
-        
-        await playTrackById(track.id, track.title, track.artists.join(', '), track.cover_uri);
+        await playTrack(tracksList[randomIndex]);
     }
 }
 
 // Воспроизведение предыдущего трека
 async function playPrevTrack() {
-    // Для предыдущего трека тоже загружаем новые
-    await playNextTrack();
+    await playNextTrack(); // Всегда новые треки
 }
 
 // Воспроизведение трека по ID
@@ -96,8 +102,6 @@ async function playTrackById(trackId, title, artist, coverUri) {
     const nowPlayingTitle = document.getElementById('nowPlayingTitle');
     const nowPlayingArtist = document.getElementById('nowPlayingArtist');
     const trackCover = document.getElementById('trackCover');
-    
-    currentTrackId = trackId;
     
     // Обновляем информацию о треке
     nowPlayingTitle.textContent = title;
@@ -124,26 +128,104 @@ async function playTrackById(trackId, title, artist, coverUri) {
         
     } catch (error) {
         console.error('Ошибка:', error);
-        // При ошибке сразу пробуем следующий трек
         setTimeout(() => playNextTrack(), 1000);
+    }
+}
+
+// Переключение воспроизведения/паузы
+function togglePlayPause() {
+    if (isPlaying) {
+        audioElement.pause();
+    } else {
+        audioElement.play();
     }
 }
 
 // Обновление кнопки воспроизведения
 function updatePlayButton() {
-    // Можно добавить логику если понадобится
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const playPauseIcon = document.getElementById('playPauseIcon');
+    
+    if (isPlaying) {
+        playPauseIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+        playPauseBtn.setAttribute('title', 'Пауза');
+    } else {
+        playPauseIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+        playPauseBtn.setAttribute('title', 'Воспроизвести');
+    }
+}
+
+// Проверка лайка
+async function checkIfLiked() {
+    if (!currentTrackId) return;
+    
+    try {
+        const response = await fetch(`/api/is-liked/${currentTrackId}`);
+        const data = await response.json();
+        
+        const likeBtn = document.getElementById('likeBtn');
+        if (data.liked) {
+            likeBtn.innerHTML = '❤️';
+            likeBtn.classList.add('liked');
+        } else {
+            likeBtn.innerHTML = '♡';
+            likeBtn.classList.remove('liked');
+        }
+    } catch (error) {
+        console.error('Ошибка проверки лайка:', error);
+    }
+}
+
+// Переключение лайка
+async function toggleLike() {
+    if (!currentTrackId || !currentTrackData) return;
+    
+    const likeBtn = document.getElementById('likeBtn');
+    
+    try {
+        if (likeBtn.classList.contains('liked')) {
+            // Удаляем лайк
+            const response = await fetch(`/api/unlike/${currentTrackId}`, {
+                method: 'DELETE'
+            });
+            const data = await response.json();
+            
+            if (data.status === 'unliked') {
+                likeBtn.innerHTML = '♡';
+                likeBtn.classList.remove('liked');
+            }
+        } else {
+            // Добавляем лайк
+            const response = await fetch(`/api/like/${currentTrackId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(currentTrackData)
+            });
+            const data = await response.json();
+            
+            if (data.status === 'liked') {
+                likeBtn.innerHTML = '❤️';
+                likeBtn.classList.add('liked');
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка лайка:', error);
+        alert('Ошибка при сохранении лайка');
+    }
 }
 
 // Горячие клавиши
 document.addEventListener('keydown', function(e) {
     if (e.code === 'Space' && audioElement) {
         e.preventDefault();
-        if (isPlaying) {
-            audioElement.pause();
-        } else {
-            audioElement.play();
-        }
+        togglePlayPause();
     } else if (e.code === 'ArrowRight') {
         playNextTrack();
+    } else if (e.code === 'ArrowLeft') {
+        playPrevTrack();
+    } else if (e.code === 'KeyL') {
+        toggleLike();
     }
 });

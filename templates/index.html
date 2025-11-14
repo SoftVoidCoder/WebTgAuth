@@ -20,27 +20,50 @@
             <button class="listen-btn" onclick="startRadio()">
                 🎵 Слушать музыку
             </button>
+            <a href="/profile#liked" class="profile-btn">❤️ Мне нравится</a>
         </div>
     {% endif %}
 </section>
 
 <!-- АУДИО ПЛЕЕР -->
 <div class="audio-player" id="audioPlayer" style="display: none;">
-    <div class="player-info">
-        <div class="track-cover" id="trackCover">
-            <div class="cover-placeholder">🎵</div>
+    <div class="player-main">
+        <div class="player-info">
+            <div class="track-cover" id="trackCover">
+                <div class="cover-placeholder">🎵</div>
+            </div>
+            <div class="track-details">
+                <div class="track-title" id="nowPlayingTitle">Выберите трек</div>
+                <div class="track-artist" id="nowPlayingArtist">Исполнитель</div>
+            </div>
+            <button class="like-btn" id="likeBtn" onclick="toggleLike()">
+                ♡
+            </button>
         </div>
-        <div class="track-details">
-            <div class="track-title" id="nowPlayingTitle">Выберите трек</div>
-            <div class="track-artist" id="nowPlayingArtist">Исполнитель</div>
+        
+        <div class="player-controls">
+            <button class="control-btn prev-btn" onclick="playPrevTrack()" title="Предыдущий">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+                </svg>
+            </button>
+            
+            <button class="control-btn play-btn" id="playPauseBtn" onclick="togglePlayPause()" title="Воспроизвести/Пауза">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" id="playPauseIcon">
+                    <path d="M8 5v14l11-7z"/>
+                </svg>
+            </button>
+            
+            <button class="control-btn next-btn" onclick="playNextTrack()" title="Следующий">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+                </svg>
+            </button>
         </div>
-    </div>
-    <audio controls class="audio-element" id="audioElement">
-        Ваш браузер не поддерживает аудио элементы.
-    </audio>
-    <div class="player-controls">
-        <button class="control-btn" onclick="playPrevTrack()" title="Предыдущий">⏮️</button>
-        <button class="control-btn" onclick="playNextTrack()" title="Следующий">⏭️</button>
+        
+        <audio class="audio-element" id="audioElement">
+            Ваш браузер не поддерживает аудио элементы.
+        </audio>
     </div>
 </div>
 

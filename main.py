@@ -4,6 +4,7 @@ from fastapi.responses import RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from yandex_music import Client
+from app import crud
 
 from app.database import get_db, engine
 from app import models
@@ -112,3 +113,93 @@ async def profile(request: Request, current_user: dict = Depends(get_current_use
         "db_user": current_user["db_user"],
         "bot_username": BOT_USERNAME
     })
+
+
+@app.post("/api/like/{track_id}")
+async def like_track(
+    track_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    if not current_user:
+        return JSONResponse({"error": "Не авторизован"}, status_code=401)
+    
+    db = next(get_db())
+    user_id = current_user["db_user"].id
+    
+    # Получаем информацию о треке
+    try:
+        track_data = {
+            "id": track_id,
+            "title": "Трек",  # Можно получить из запроса или из Яндекс API
+            "artists": ["Исполнитель"],
+            "cover_uri": None,
+            "album": "Альбом"
+        }
+        
+        liked_track = crud.add_liked_track(db, user_id, track_data)
+        return {"status": "liked", "track_id": track_id}
+        
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+@app.delete("/api/unlike/{track_id}")
+async def unlike_track(
+    track_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    if not current_user:
+        return JSONResponse({"error": "Не авторизован"}, status_code=401)
+    
+    db = next(get_db())
+    user_id = current_user["db_user"].id
+    
+    try:
+        success = crud.remove_liked_track(db, user_id, track_id)
+        return {"status": "unliked", "track_id": track_id}
+        
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+@app.get("/api/liked-tracks")
+async def get_liked_tracks(current_user: dict = Depends(get_current_user)):
+    if not current_user:
+        return JSONResponse({"error": "Не авторизован"}, status_code=401)
+    
+    db = next(get_db())
+    user_id = current_user["db_user"].id
+    
+    try:
+        liked_tracks = crud.get_liked_tracks(db, user_id)
+        tracks_data = []
+        for track in liked_tracks:
+            tracks_data.append({
+                "id": track.track_id,
+                "title": track.track_title,
+                "artists": track.track_artists.split(','),
+                "cover_uri": track.track_cover_uri,
+                "album": track.track_album
+            })
+        
+        return {"tracks": tracks_data}
+        
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+    
+
+@app.get("/api/is-liked/{track_id}")
+async def is_track_liked(
+    track_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    if not current_user:
+        return JSONResponse({"error": "Не авторизован"}, status_code=401)
+    
+    db = next(get_db())
+    user_id = current_user["db_user"].id
+    
+    try:
+        liked = crud.is_track_liked(db, user_id, track_id)
+        return {"liked": liked}
+        
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
