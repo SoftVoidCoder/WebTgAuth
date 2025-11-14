@@ -51,15 +51,26 @@ async def get_popular_tracks():
         if not yandex_client:
             return JSONResponse({"error": "Сервис недоступен"}, status_code=503)
         
-        # Ищем популярные треки через поиск
-        search_result = yandex_client.search("популярные треки", type_="track")
+        # Ищем разные популярные запросы каждый раз
+        search_queries = [
+            "популярные треки", "новинки музыки", "хиты", "топ чарт", 
+            "русские хиты", "зарубежные хиты", "новые релизы", "популярное"
+        ]
+        
+        import random
+        random_query = random.choice(search_queries)
+        
+        search_result = yandex_client.search(random_query, type_="track")
         
         if not search_result or not search_result.tracks:
             return {"tracks": []}
         
+        # Берем случайные треки из результатов
+        all_tracks = search_result.tracks.results
+        random.shuffle(all_tracks)  # Перемешиваем треки
+        
         tracks_data = []
-        for track in search_result.tracks.results[:20]:
-            # Безопасно получаем данные как в поиске
+        for track in all_tracks[:20]:  # Берем первые 20 после перемешивания
             album_id = None
             if hasattr(track, 'albums') and track.albums and len(track.albums) > 0:
                 album_id = track.albums[0].id
