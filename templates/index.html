@@ -7,18 +7,29 @@
 
 {% block content %}
 <section class="hero">
+    <!-- Анимированный фон -->
+    <div class="waves"></div>
+    
+    <!-- Плавающие элементы -->
+    <div class="floating-elements">
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+    </div>
+    
     <h1>🎵 Music App</h1>
-    <p>Слушайте музыку через Telegram</p>
+    <p>Откройте мир музыки через Telegram. Персональные рекомендации, умный подбор треков и всё что нужно для идеального звучания.</p>
     
     {% if not user_data %}
         <div class="auth-prompt">
-            <p>Войдите через Telegram чтобы начать</p>
+            <p>Войдите через Telegram чтобы начать слушать</p>
         </div>
     {% else %}
         <!-- КНОПКА СЛУШАТЬ -->
         <div class="listen-section">
             <button class="listen-btn" onclick="startRadio()">
-                🎵 Слушать музыку
+                🎵 Начать слушать
             </button>
             <a href="/profile#liked" class="profile-btn">❤️ Мне нравится</a>
         </div>
@@ -60,7 +71,7 @@
                 </svg>
             </button>
             
-            <!-- Добавь этот блок для громкости -->
+            <!-- Регулятор громкости -->
             <div class="volume-control">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
