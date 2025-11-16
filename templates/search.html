@@ -186,6 +186,31 @@
         color: #6b7280;
         font-size: 1.1rem;
     }
+
+    /* ПЕРЕОПРЕДЕЛЯЕМ СКРЫТИЕ ПЛЕЕРА */
+    .audio-player {
+        display: block !important;
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 95%;
+        max-width: 400px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border-radius: 15px;
+        padding: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        z-index: 1000;
+    }
+
+    .track-additional-info,
+    .current-track-info,
+    .now-playing-label,
+    .track-full-info {
+        display: block !important;
+    }
 </style>
 {% endblock %}
 
@@ -257,7 +282,7 @@
 {% endif %}
 
 <!-- АУДИО ПЛЕЕР -->
-<div class="audio-player" id="audioPlayer" style="display: none;">
+<div class="audio-player" id="audioPlayer">
     <div class="player-main">
         <div class="player-info">
             <div class="track-cover" id="trackCover">
@@ -322,6 +347,10 @@ function playTrackFromCard(button) {
     const artist = card.dataset.trackArtist;
     const cover = card.dataset.trackCover;
     
+    // Показываем плеер перед воспроизведением
+    const audioPlayer = document.getElementById('audioPlayer');
+    audioPlayer.style.display = 'block';
+    
     playTrackById(trackId, title, artist, cover);
 }
 
@@ -333,7 +362,6 @@ async function toggleLikeFromCard(button) {
     const cover = card.dataset.trackCover;
     const album = card.dataset.trackAlbum;
     
-    // Создаем полный объект трека как в music.js
     currentTrackData = {
         id: trackId,
         title: title,
@@ -343,10 +371,8 @@ async function toggleLikeFromCard(button) {
     };
     currentTrackId = trackId;
     
-    // Вызываем оригинальную функцию лайка
     await toggleLike();
     
-    // Обновляем внешний вид кнопки
     const isLiked = document.getElementById('likeBtn').classList.contains('liked');
     if (isLiked) {
         button.innerHTML = '❤️';
