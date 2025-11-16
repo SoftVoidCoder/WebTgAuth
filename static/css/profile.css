@@ -1,11 +1,50 @@
 /* Стили для профиля */
 .profile-container {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(26, 26, 46, 0.95);
     border-radius: 15px;
     padding: 1.5rem;
     margin: 1rem auto;
     max-width: 800px;
-    border: 1px solid #2a2a2a;
+    border: 1px solid rgba(42, 90, 255, 0.3);
+    backdrop-filter: blur(10px);
+    animation: fadeInUp 0.8s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* КНОПКА СЛУШАТЬ СВЕРХУ */
+.listen-all-btn {
+    background: linear-gradient(135deg, #2a5aff, #3b6bff);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 2rem;
+    animation: pulse 2s infinite;
+    font-size: 1rem;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(42, 90, 255, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(42, 90, 255, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(42, 90, 255, 0); }
+}
+
+.listen-all-btn:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #3b6bff, #2a5aff);
 }
 
 /* Шапка профиля с аватаркой */
@@ -15,7 +54,7 @@
     gap: 1.5rem;
     margin-bottom: 2rem;
     padding-bottom: 1.5rem;
-    border-bottom: 1px solid #2a2a2a;
+    border-bottom: 1px solid rgba(42, 90, 255, 0.3);
 }
 
 .avatar-section {
@@ -26,21 +65,28 @@
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    border: 3px solid #ff6b6b;
+    border: 3px solid #2a5aff;
+    animation: avatarGlow 3s ease-in-out infinite;
+}
+
+@keyframes avatarGlow {
+    0%, 100% { box-shadow: 0 0 20px rgba(42, 90, 255, 0.3); }
+    50% { box-shadow: 0 0 30px rgba(42, 90, 255, 0.6); }
 }
 
 .default-avatar {
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #ff6b6b, #ffa726);
+    background: linear-gradient(135deg, #2a5aff, #3b6bff);
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
     font-weight: bold;
     font-size: 2rem;
-    border: 3px solid #ff6b6b;
+    border: 3px solid #2a5aff;
+    animation: avatarGlow 3s ease-in-out infinite;
 }
 
 .profile-info h2 {
@@ -50,7 +96,7 @@
 }
 
 .username {
-    color: #ff6b6b;
+    color: #2a5aff;
     margin: 0 0 1rem 0;
     font-size: 1rem;
 }
@@ -61,7 +107,7 @@
 }
 
 .stat {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(42, 90, 255, 0.2);
     padding: 0.3rem 0.8rem;
     border-radius: 15px;
     font-size: 0.8rem;
@@ -74,12 +120,12 @@
 }
 
 .section-title {
-    color: #ff6b6b;
+    color: #2a5aff;
     margin-bottom: 1.5rem;
     font-size: 1.3rem;
     font-weight: 600;
     padding-left: 0.5rem;
-    border-left: 3px solid #ff6b6b;
+    border-left: 3px solid #2a5aff;
 }
 
 /* Список треков в столбик */
@@ -98,12 +144,24 @@
     border-radius: 12px;
     transition: all 0.3s ease;
     border: 1px solid transparent;
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 .track-item:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: #ff6b6b;
-    transform: translateY(-1px);
+    background: rgba(42, 90, 255, 0.1);
+    border-color: #2a5aff;
+    transform: translateY(-2px);
 }
 
 .track-item-image {
@@ -121,7 +179,7 @@
     width: 50px;
     height: 50px;
     border-radius: 8px;
-    background: linear-gradient(135deg, #ff6b6b, #ffa726);
+    background: linear-gradient(135deg, #2a5aff, #3b6bff);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -144,7 +202,7 @@
 }
 
 .track-item-artist {
-    color: #ff6b6b;
+    color: #2a5aff;
     font-size: 0.9rem;
     margin-bottom: 0.2rem;
     white-space: nowrap;
@@ -167,7 +225,7 @@
 }
 
 .play-item-btn, .remove-item-btn {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(42, 90, 255, 0.2);
     border: none;
     color: white;
     padding: 8px 12px;
@@ -178,7 +236,7 @@
 }
 
 .play-item-btn:hover {
-    background: rgba(255, 107, 107, 0.3);
+    background: rgba(42, 90, 255, 0.4);
     transform: scale(1.1);
 }
 
@@ -193,12 +251,22 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background: rgba(20, 20, 20, 0.95);
+    background: rgba(20, 20, 40, 0.95);
     backdrop-filter: blur(20px);
     padding: 0.8rem 1.5rem;
-    border-top: 2px solid #ff6b6b;
+    border-top: 2px solid #2a5aff;
     z-index: 1000;
     display: none;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
 }
 
 .compact-player-main {
@@ -234,7 +302,7 @@
 .compact-placeholder {
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, #ff6b6b, #ffa726);
+    background: linear-gradient(135deg, #2a5aff, #3b6bff);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -257,7 +325,7 @@
 }
 
 .compact-artist {
-    color: #ff6b6b;
+    color: #2a5aff;
     font-size: 0.8rem;
     white-space: nowrap;
     overflow: hidden;
@@ -272,7 +340,7 @@
 }
 
 .compact-btn {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(42, 90, 255, 0.2);
     border: none;
     color: white;
     cursor: pointer;
@@ -285,18 +353,18 @@
 }
 
 .compact-btn:hover {
-    background: rgba(255, 107, 107, 0.3);
+    background: rgba(42, 90, 255, 0.4);
     transform: scale(1.1);
 }
 
 .compact-btn.play-btn {
-    background: linear-gradient(135deg, #ff6b6b, #ffa726);
+    background: linear-gradient(135deg, #2a5aff, #3b6bff);
     width: 35px;
     height: 35px;
 }
 
 .compact-btn.play-btn:hover {
-    background: linear-gradient(135deg, #ff5252, #ff9800);
+    background: linear-gradient(135deg, #1a4aff, #2a5aff);
 }
 
 .compact-like-btn {
@@ -315,12 +383,12 @@
 }
 
 .compact-like-btn:hover {
-    background: rgba(255, 107, 107, 0.1);
+    background: rgba(42, 90, 255, 0.1);
     transform: scale(1.1);
 }
 
 .compact-like-btn.liked {
-    color: #ff6b6b;
+    color: #2a5aff;
 }
 
 /* Сообщение когда нет треков */

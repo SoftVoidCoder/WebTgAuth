@@ -8,6 +8,13 @@
 {% block title %}Профиль - Music App{% endblock %}
 
 {% block content %}
+<!-- КНОПКА СЛУШАТЬ СВЕРХУ -->
+<div style="text-align: center; margin-top: 1rem;">
+    <button class="listen-all-btn" onclick="playAllLikedTracks()">
+        🎵 Слушать все треки
+    </button>
+</div>
+
 <div class="profile-container">
     <!-- ШАПКА ПРОФИЛЯ С АВАТАРКОЙ -->
     <div class="profile-header">
@@ -23,12 +30,6 @@
         <div class="profile-info">
             <h2>{{ user_data.first_name }} {{ user_data.last_name or '' }}</h2>
             <p class="username">@{{ user_data.username or 'username не указан' }}</p>
-            <div class="profile-stats">
-                <span class="stat">ID: {{ user_data.id }}</span>
-                {% if db_user %}
-                <span class="stat">С {{ db_user.created_at.strftime('%d.%m.%Y') }}</span>
-                {% endif %}
-            </div>
         </div>
     </div>
 
@@ -93,4 +94,5 @@
 </div>
 
 <script src="/static/js/profile.js"></script>
+
 {% endblock %}

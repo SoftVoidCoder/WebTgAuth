@@ -30,7 +30,6 @@ function setupAudioEvents() {
 }
 
 // Загрузка лайкнутых треков
-// Загрузка лайкнутых треков
 async function loadLikedTracks() {
     console.log('🟢 Loading liked tracks...');
     
@@ -55,7 +54,6 @@ async function loadLikedTracks() {
     }
 }
 
-// Отображение лайкнутых треков в столбик
 // Отображение лайкнутых треков в столбик
 function displayLikedTracks() {
     const tracksList = document.getElementById('likedTracksList');
@@ -285,4 +283,16 @@ function showNoTracksMessage() {
     
     tracksList.innerHTML = '';
     noTracksMessage.style.display = 'block';
+}
+
+// Воспроизведение всех лайкнутых треков
+async function playAllLikedTracks() {
+    if (likedTracks.length === 0) {
+        alert('У вас пока нет лайкнутых треков');
+        return;
+    }
+    
+    // Начинаем с первого трека
+    currentTrackIndex = 0;
+    await playLikedTrackFromList(currentTrackIndex);
 }
