@@ -155,6 +155,10 @@
         transform: scale(1.1);
     }
 
+    .play-btn.playing {
+        background: rgba(255,255,255,0.3);
+    }
+
     .like-btn-search {
         background: rgba(255,255,255,0.2);
         border: 2px solid rgba(255,255,255,0.3);
@@ -187,9 +191,9 @@
         font-size: 1.1rem;
     }
 
-    /* ПЕРЕОПРЕДЕЛЯЕМ СКРЫТИЕ ПЛЕЕРА */
+    /* ПЛЕЕР СКРЫТ ПО УМОЛЧАНИЮ */
     .audio-player {
-        display: block !important;
+        display: none;
         position: fixed;
         bottom: 20px;
         left: 50%;
@@ -281,7 +285,7 @@
     {% endif %}
 {% endif %}
 
-<!-- АУДИО ПЛЕЕР -->
+<!-- АУДИО ПЛЕЕР (СКРЫТ ПО УМОЛЧАНИЮ) -->
 <div class="audio-player" id="audioPlayer">
     <div class="player-main">
         <div class="player-info">
@@ -289,8 +293,8 @@
                 <div class="cover-placeholder">🎵</div>
             </div>
             <div class="track-details">
-                <div class="track-title" id="nowPlayingTitle">Выберите трек</div>
-                <div class="track-artist" id="nowPlayingArtist">Исполнитель</div>
+                <div class="track-title" id="nowPlayingTitle"></div>
+                <div class="track-artist" id="nowPlayingArtist"></div>
             </div>
         </div>
         
@@ -328,7 +332,7 @@
         <div class="track-additional-info">
             <div class="current-track-info" id="currentTrackInfo">
                 <span class="now-playing-label">Сейчас играет:</span>
-                <span class="track-full-info" id="trackFullInfo">Выберите трек для воспроизведения</span>
+                <span class="track-full-info" id="trackFullInfo"></span>
             </div>
         </div>
         
@@ -340,6 +344,8 @@
 
 <script src="/static/js/music.js"></script>
 <script>
+let currentPlayingButton = null;
+
 function playTrackFromCard(button) {
     const card = button.closest('.track-card');
     const trackId = card.dataset.trackId;
@@ -347,12 +353,46 @@ function playTrackFromCard(button) {
     const artist = card.dataset.trackArtist;
     const cover = card.dataset.trackCover;
     
-    // Показываем плеер перед воспроизведением
+    // Сбрасываем предыдущую кнопку
+    if (currentPlayingButton && currentPlayingButton !== button) {
+        currentPlayingButton.innerHTML = '▶';
+        currentPlayingButton.classList.remove('playing');
+    }
+    
+    // Обновляем текущую кнопку
+    currentPlayingButton = button;
+    button.innerHTML = '⏸️';
+    button.classList.add('playing');
+    
+    // Показываем плеер
     const audioPlayer = document.getElementById('audioPlayer');
     audioPlayer.style.display = 'block';
     
     playTrackById(trackId, title, artist, cover);
 }
+
+// Обновляем кнопку при паузе/воспроизведении
+audioElement.onpause = function() {
+    if (currentPlayingButton) {
+        currentPlayingButton.innerHTML = '▶';
+        currentPlayingButton.classList.remove('playing');
+    }
+};
+
+audioElement.onplay = function() {
+    if (currentPlayingButton) {
+        currentPlayingButton.innerHTML = '⏸️';
+        currentPlayingButton.classList.add('playing');
+    }
+};
+
+audioElement.onended = function() {
+    if (currentPlayingButton) {
+        currentPlayingButton.innerHTML = '▶';
+        currentPlayingButton.classList.remove('playing');
+        currentPlayingButton = null;
+    }
+};
 
 async function toggleLikeFromCard(button) {
     const card = button.closest('.track-card');
