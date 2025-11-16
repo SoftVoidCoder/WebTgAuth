@@ -1,7 +1,192 @@
+[file name]: search.html
+[file content begin]
 {% extends "base.html" %}
 
 {% block head %}
 <link rel="stylesheet" href="/static/css/music.css">
+<style>
+    .search-hero {
+        text-align: center;
+        padding: 3rem 1rem;
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%);
+        border-radius: 20px;
+        margin: 1rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .search-hero h1 {
+        color: white;
+        font-size: 2.5rem;
+        margin-bottom: 1.5rem;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    .search-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .search-form {
+        display: flex;
+        gap: 10px;
+    }
+
+    .search-input {
+        flex: 1;
+        padding: 15px 20px;
+        border: none;
+        border-radius: 50px;
+        background: rgba(255,255,255,0.9);
+        font-size: 1.1rem;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+
+    .search-input:focus {
+        outline: none;
+        background: white;
+    }
+
+    .search-btn {
+        padding: 15px 30px;
+        background: #2563eb;
+        color: white;
+        border: none;
+        border-radius: 50px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .tracks-section {
+        margin-top: 2rem;
+    }
+
+    .section-title {
+        color: #1e40af;
+        font-size: 1.8rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    .tracks-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+        padding: 20px 0;
+    }
+
+    .track-card {
+        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+        border-radius: 15px;
+        padding: 20px;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .track-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(37, 99, 235, 0.4);
+    }
+
+    .track-image {
+        width: 100%;
+        height: 200px;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 15px;
+    }
+
+    .track-cover {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .track-placeholder {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg, #60a5fa, #93c5fd);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: white;
+    }
+
+    .track-info {
+        color: white;
+    }
+
+    .track-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .track-artist {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin-bottom: 15px;
+    }
+
+    .track-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .play-btn {
+        background: rgba(255,255,255,0.2);
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: white;
+        font-size: 1.2rem;
+        transition: all 0.3s ease;
+    }
+
+    .play-btn:hover {
+        background: rgba(255,255,255,0.3);
+        transform: scale(1.1);
+    }
+
+    .like-btn-search {
+        background: rgba(255,255,255,0.2);
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: white;
+        font-size: 1.3rem;
+        transition: all 0.3s ease;
+    }
+
+    .like-btn-search:hover {
+        background: rgba(255,255,255,0.3);
+        transform: scale(1.1);
+    }
+
+    .like-btn-search.liked {
+        color: #fbbf24;
+        border-color: #fbbf24;
+    }
+
+    .no-results {
+        text-align: center;
+        padding: 3rem;
+        color: #6b7280;
+        font-size: 1.1rem;
+    }
+</style>
 {% endblock %}
 
 {% block title %}Поиск музыки{% endblock %}
@@ -16,7 +201,7 @@
                 type="text" 
                 name="query" 
                 class="search-input" 
-                placeholder="Найти исполнителя, трек или альбом..."
+                placeholder="Найти трек..."
                 value="{{ search_query if search_query }}"
                 autofocus
             >
@@ -26,59 +211,16 @@
 </section>
 
 {% if search_query %}
-    {% if artists %}
-    <section class="artists-section">
-        <h2 class="section-title">Исполнители</h2>
-        <div class="artists-grid">
-            {% for artist in artists %}
-            <div class="artist-card" onclick="window.location.href='/music/artist/{{ artist.id }}'">
-                <div class="artist-image">
-                    {% if artist.cover_uri %}
-                    <img src="https://{{ artist.cover_uri.replace('%%', '300x300') }}" alt="{{ artist.name }}" class="artist-cover">
-                    {% elif artist.cover %}
-                    <img src="https://{{ artist.cover.uri.replace('%%', '300x300') }}" alt="{{ artist.name }}" class="artist-cover">
-                    {% else %}
-                    <div class="artist-placeholder">{{ artist.name[0] if artist.name else '?' }}</div>
-                    {% endif %}
-                </div>
-                <h3 class="artist-name">{{ artist.name }}</h3>
-            </div>
-            {% endfor %}
-        </div>
-    </section>
-    {% endif %}
-
-    {% if albums %}
-    <section class="artists-section">
-        <h2 class="section-title">Альбомы</h2>
-        <div class="artists-grid">
-            {% for album in albums %}
-            <div class="artist-card">
-                <div class="artist-image">
-                    {% if album.cover_uri %}
-                    <img src="https://{{ album.cover_uri.replace('%%', '300x300') }}" alt="{{ album.title }}" class="artist-cover">
-                    {% else %}
-                    <div class="artist-placeholder">{{ album.title[0] if album.title else '?' }}</div>
-                    {% endif %}
-                </div>
-                <h3 class="artist-name">{{ album.title }}</h3>
-                <p style="color: #888; font-size: 0.9rem; margin: 0.5rem 0 0 0;">
-                    {% for artist in album.artists %}
-                    {{ artist.name }}{% if not loop.last %}, {% endif %}
-                    {% endfor %}
-                </p>
-            </div>
-            {% endfor %}
-        </div>
-    </section>
-    {% endif %}
-
     {% if tracks %}
     <section class="tracks-section">
-        <h2 class="section-title">Треки</h2>
+        <h2 class="section-title">Найденные треки</h2>
         <div class="tracks-grid">
             {% for track in tracks %}
-            <div class="track-card" data-track-id="{% if track.album_id %}{{ track.id }}_{{ track.album_id }}{% else %}{{ track.id }}{% endif %}">
+            <div class="track-card" 
+                 data-track-id="{% if track.album_id %}{{ track.id }}_{{ track.album_id }}{% else %}{{ track.id }}{% endif %}"
+                 data-track-title="{{ track.title }}"
+                 data-track-artist="{% for artist in track.artists %}{{ artist.name }}{% if not loop.last %}, {% endif %}{% endfor %}"
+                 data-track-cover="{% if track.cover_uri %}https://{{ track.cover_uri.replace('%%', '300x300') }}{% endif %}">
                 <div class="track-image">
                     {% if track.cover_uri %}
                     <img src="https://{{ track.cover_uri.replace('%%', '300x300') }}" alt="{{ track.title }}" class="track-cover">
@@ -94,39 +236,54 @@
                         {{ artist.name }}{% if not loop.last %}, {% endif %}
                         {% endfor %}
                     </p>
-                    <p class="track-album">
-                        {% if track.albums and track.albums[0] %}
-                            {{ track.albums[0].title }}
-                        {% elif track.album %}
-                            {{ track.album.title }}
-                        {% else %}
-                            Неизвестный альбом
-                        {% endif %}
-                    </p>
                 </div>
                 
-                <button class="play-btn" onclick="playTrack(this)">▶</button>
+                <div class="track-actions">
+                    <button class="play-btn" onclick="playTrackFromCard(this)">▶</button>
+                    <button class="like-btn-search" onclick="toggleLikeFromCard(this)">♡</button>
+                </div>
             </div>
             {% endfor %}
         </div>
     </section>
     {% endif %}
 
-    {% if not tracks and not artists and not albums %}
+    {% if not tracks %}
     <div class="no-results">
         <p>По запросу "{{ search_query }}" ничего не найдено</p>
-        <p style="margin-top: 1rem; color: #666;">Попробуйте изменить запрос</p>
     </div>
     {% endif %}
 {% endif %}
 
-<!-- АУДИО ПЛЕЕР -->
-<div class="audio-player" id="audioPlayer" style="display: none;">
-    <audio controls class="audio-element" id="audioElement">
-        Ваш браузер не поддерживает аудио элементы.
-    </audio>
-    <div class="now-playing" id="nowPlaying"></div>
-</div>
-
 <script src="/static/js/music.js"></script>
+<script>
+function playTrackFromCard(button) {
+    const card = button.closest('.track-card');
+    const trackId = card.dataset.trackId;
+    const title = card.dataset.trackTitle;
+    const artist = card.dataset.trackArtists;
+    const cover = card.dataset.trackCover;
+    
+    playTrackById(trackId, title, artist, cover);
+}
+
+function toggleLikeFromCard(button) {
+    const card = button.closest('.track-card');
+    const trackId = card.dataset.trackId;
+    const title = card.dataset.trackTitle;
+    const artist = card.dataset.trackArtists;
+    const cover = card.dataset.trackCover;
+    
+    currentTrackData = {
+        id: trackId,
+        title: title,
+        artists: artist.split(', '),
+        cover_uri: cover
+    };
+    currentTrackId = trackId;
+    
+    toggleLike();
+}
+</script>
 {% endblock %}
+[file content end]
