@@ -220,7 +220,8 @@
                  data-track-id="{% if track.album_id %}{{ track.id }}_{{ track.album_id }}{% else %}{{ track.id }}{% endif %}"
                  data-track-title="{{ track.title }}"
                  data-track-artist="{% for artist in track.artists %}{{ artist.name }}{% if not loop.last %}, {% endif %}{% endfor %}"
-                 data-track-cover="{% if track.cover_uri %}https://{{ track.cover_uri.replace('%%', '300x300') }}{% endif %}">
+                 data-track-cover="{% if track.cover_uri %}https://{{ track.cover_uri.replace('%%', '300x300') }}{% endif %}"
+                 data-track-album="{% if track.albums and track.albums[0] %}{{ track.albums[0].title }}{% elif track.album %}{{ track.album.title }}{% else %}Неизвестный альбом{% endif %}">
                 <div class="track-image">
                     {% if track.cover_uri %}
                     <img src="https://{{ track.cover_uri.replace('%%', '300x300') }}" alt="{{ track.title }}" class="track-cover">
@@ -255,34 +256,105 @@
     {% endif %}
 {% endif %}
 
+<!-- АУДИО ПЛЕЕР -->
+<div class="audio-player" id="audioPlayer" style="display: none;">
+    <div class="player-main">
+        <div class="player-info">
+            <div class="track-cover" id="trackCover">
+                <div class="cover-placeholder">🎵</div>
+            </div>
+            <div class="track-details">
+                <div class="track-title" id="nowPlayingTitle">Выберите трек</div>
+                <div class="track-artist" id="nowPlayingArtist">Исполнитель</div>
+            </div>
+        </div>
+        
+        <div class="player-controls">
+            <button class="control-btn prev-btn" onclick="playPrevTrack()" title="Предыдущий">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+                </svg>
+            </button>
+            
+            <button class="control-btn play-btn" id="playPauseBtn" onclick="togglePlayPause()" title="Воспроизвести/Пауза">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" id="playPauseIcon">
+                    <path d="M8 5v14l11-7z"/>
+                </svg>
+            </button>
+            
+            <button class="control-btn next-btn" onclick="playNextTrack()" title="Следующий">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+                </svg>
+            </button>
+            
+            <button class="like-btn" id="likeBtn" onclick="toggleLike()" title="Добавить в понравившиеся">
+                ♡
+            </button>
+            
+            <div class="volume-control">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                </svg>
+                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.1" value="0.7">
+            </div>
+        </div>
+        
+        <div class="track-additional-info">
+            <div class="current-track-info" id="currentTrackInfo">
+                <span class="now-playing-label">Сейчас играет:</span>
+                <span class="track-full-info" id="trackFullInfo">Выберите трек для воспроизведения</span>
+            </div>
+        </div>
+        
+        <audio class="audio-element" id="audioElement">
+            Ваш браузер не поддерживает аудио элементы.
+        </audio>
+    </div>
+</div>
+
 <script src="/static/js/music.js"></script>
 <script>
 function playTrackFromCard(button) {
     const card = button.closest('.track-card');
     const trackId = card.dataset.trackId;
     const title = card.dataset.trackTitle;
-    const artist = card.dataset.trackArtists;
+    const artist = card.dataset.trackArtist;
     const cover = card.dataset.trackCover;
     
     playTrackById(trackId, title, artist, cover);
 }
 
-function toggleLikeFromCard(button) {
+async function toggleLikeFromCard(button) {
     const card = button.closest('.track-card');
     const trackId = card.dataset.trackId;
     const title = card.dataset.trackTitle;
-    const artist = card.dataset.trackArtists;
+    const artist = card.dataset.trackArtist;
     const cover = card.dataset.trackCover;
+    const album = card.dataset.trackAlbum;
     
+    // Создаем полный объект трека как в music.js
     currentTrackData = {
         id: trackId,
         title: title,
         artists: artist.split(', '),
-        cover_uri: cover
+        cover_uri: cover,
+        album: album
     };
     currentTrackId = trackId;
     
-    toggleLike();
+    // Вызываем оригинальную функцию лайка
+    await toggleLike();
+    
+    // Обновляем внешний вид кнопки
+    const isLiked = document.getElementById('likeBtn').classList.contains('liked');
+    if (isLiked) {
+        button.innerHTML = '❤️';
+        button.classList.add('liked');
+    } else {
+        button.innerHTML = '♡';
+        button.classList.remove('liked');
+    }
 }
 </script>
 {% endblock %}
