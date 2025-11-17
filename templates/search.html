@@ -345,6 +345,7 @@
 <script src="/static/js/music.js"></script>
 <script>
 let currentPlayingButton = null;
+let currentPlayingCardId = null;
 
 function playTrackFromCard(button) {
     const card = button.closest('.track-card');
@@ -352,6 +353,12 @@ function playTrackFromCard(button) {
     const title = card.dataset.trackTitle;
     const artist = card.dataset.trackArtist;
     const cover = card.dataset.trackCover;
+    
+    // Если это тот же трек что уже играет - ставим на паузу/продолжаем
+    if (currentPlayingCardId === trackId) {
+        togglePlayPause();
+        return;
+    }
     
     // Сбрасываем предыдущую кнопку
     if (currentPlayingButton && currentPlayingButton !== button) {
@@ -361,6 +368,7 @@ function playTrackFromCard(button) {
     
     // Обновляем текущую кнопку
     currentPlayingButton = button;
+    currentPlayingCardId = trackId;
     button.innerHTML = '⏸️';
     button.classList.add('playing');
     
@@ -407,7 +415,7 @@ window.toggleLike = async function() {
     updateAllLikeButtons();
 };
 
-// СИНХРОНИЗАЦИЯ КНОПКИ ПАУЗЫ - ПРАВИЛЬНЫЙ ВАРИАНТ
+// СИНХРОНИЗАЦИЯ КНОПКИ ПАУЗЫ
 document.addEventListener('DOMContentLoaded', function() {
     const audioElement = document.getElementById('audioElement');
     
@@ -431,10 +439,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentPlayingButton.innerHTML = '▶';
                 currentPlayingButton.classList.remove('playing');
                 currentPlayingButton = null;
+                currentPlayingCardId = null;
             }
         });
     }
 });
+
+// Синхронизация при нажатии кнопки паузы в плеере
+const originalTogglePlayPause = window.togglePlayPause;
+window.togglePlayPause = function() {
+    originalTogglePlayPause();
+    
+    // Обновляем кнопку в карточке после небольшой задержки
+    setTimeout(() => {
+        const audioElement = document.getElementById('audioElement');
+        if (currentPlayingButton && audioElement) {
+            if (audioElement.paused) {
+                currentPlayingButton.innerHTML = '▶';
+                currentPlayingButton.classList.remove('playing');
+            } else {
+                currentPlayingButton.innerHTML = '⏸️';
+                currentPlayingButton.classList.add('playing');
+            }
+        }
+    }, 50);
+};
 
 async function toggleLikeFromCard(button) {
     const card = button.closest('.track-card');
