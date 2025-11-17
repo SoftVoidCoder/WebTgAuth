@@ -407,28 +407,34 @@ window.toggleLike = async function() {
     updateAllLikeButtons();
 };
 
-// Обновляем кнопку при паузе/воспроизведении
-audioElement.onpause = function() {
-    if (currentPlayingButton) {
-        currentPlayingButton.innerHTML = '▶';
-        currentPlayingButton.classList.remove('playing');
+// СИНХРОНИЗАЦИЯ КНОПКИ ПАУЗЫ - ПРАВИЛЬНЫЙ ВАРИАНТ
+document.addEventListener('DOMContentLoaded', function() {
+    const audioElement = document.getElementById('audioElement');
+    
+    if (audioElement) {
+        audioElement.addEventListener('pause', function() {
+            if (currentPlayingButton) {
+                currentPlayingButton.innerHTML = '▶';
+                currentPlayingButton.classList.remove('playing');
+            }
+        });
+        
+        audioElement.addEventListener('play', function() {
+            if (currentPlayingButton) {
+                currentPlayingButton.innerHTML = '⏸️';
+                currentPlayingButton.classList.add('playing');
+            }
+        });
+        
+        audioElement.addEventListener('ended', function() {
+            if (currentPlayingButton) {
+                currentPlayingButton.innerHTML = '▶';
+                currentPlayingButton.classList.remove('playing');
+                currentPlayingButton = null;
+            }
+        });
     }
-};
-
-audioElement.onplay = function() {
-    if (currentPlayingButton) {
-        currentPlayingButton.innerHTML = '⏸️';
-        currentPlayingButton.classList.add('playing');
-    }
-};
-
-audioElement.onended = function() {
-    if (currentPlayingButton) {
-        currentPlayingButton.innerHTML = '▶';
-        currentPlayingButton.classList.remove('playing');
-        currentPlayingButton = null;
-    }
-};
+});
 
 async function toggleLikeFromCard(button) {
     const card = button.closest('.track-card');
@@ -448,8 +454,6 @@ async function toggleLikeFromCard(button) {
     currentTrackId = trackId;
     
     await toggleLike();
-    
-    // updateAllLikeButtons() уже вызовется через переопределенный toggleLike
 }
 </script>
 {% endblock %}
