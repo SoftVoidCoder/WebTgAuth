@@ -716,3 +716,82 @@ document.addEventListener('keydown', function(e) {
         toggleLike();
     }
 });
+
+
+// Воспроизведение из карточки поиска
+window.playTrackFromCard = function(button) {
+    const card = button.closest('.track-card');
+    const trackId = card.dataset.trackId;
+    const title = card.dataset.trackTitle;
+    const artist = card.dataset.trackArtist;
+    const cover = card.dataset.trackCover;
+    
+    // Показываем плеер
+    const audioPlayer = document.getElementById('audioPlayer');
+    if (audioPlayer) audioPlayer.style.display = 'block';
+    
+    // Создаем объект трека
+    const trackData = {
+        id: trackId,
+        title: title,
+        artists: artist.split(', '),
+        cover_uri: cover,
+        album: card.dataset.trackAlbum
+    };
+    
+    playTrackById(trackId, title, artist, cover, trackData);
+}
+
+// Лайк из карточки поиска  
+window.toggleLikeFromCard = async function(button) {
+    const card = button.closest('.track-card');
+    const trackId = card.dataset.trackId;
+    const title = card.dataset.trackTitle;
+    const artist = card.dataset.trackArtist;
+    const cover = card.dataset.trackCover;
+    const album = card.dataset.trackAlbum;
+    
+    currentTrackData = {
+        id: trackId,
+        title: title,
+        artists: artist.split(', '),
+        cover_uri: cover,
+        album: album
+    };
+    currentTrackId = trackId;
+    
+    await toggleLike();
+    
+    // Сразу обновляем кнопку после лайка
+    const isLiked = document.getElementById('likeBtn').classList.contains('liked');
+    if (isLiked) {
+        button.innerHTML = '❤️';
+        button.classList.add('liked');
+    } else {
+        button.innerHTML = '♡';
+        button.classList.remove('liked');
+    }
+}
+
+// Синхронизация лайков при смене трека
+const originalPlayTrackById = window.playTrackById;
+window.playTrackById = async function(trackId, title, artist, coverUri, trackData = null) {
+    await originalPlayTrackById(trackId, title, artist, coverUri, trackData);
+    
+    // Обновляем все кнопки лайков для этого трека
+    setTimeout(() => {
+        const isLiked = document.getElementById('likeBtn').classList.contains('liked');
+        const allLikeButtons = document.querySelectorAll('.like-btn-search');
+        allLikeButtons.forEach(btn => {
+            const card = btn.closest('.track-card');
+            if (card && card.dataset.trackId === trackId) {
+                btn.innerHTML = isLiked ? '❤️' : '♡';
+                if (isLiked) {
+                    btn.classList.add('liked');
+                } else {
+                    btn.classList.remove('liked');
+                }
+            }
+        });
+    }, 100);
+};
