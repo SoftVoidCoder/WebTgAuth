@@ -209,9 +209,11 @@
         z-index: 1000;
     }
 
-    /* УБИРАЕМ ЛИШНЮЮ ИНФУ */
-    .track-additional-info {
-        display: none !important;
+    .track-additional-info,
+    .current-track-info,
+    .now-playing-label,
+    .track-full-info {
+        display: block !important;
     }
 </style>
 {% endblock %}
@@ -315,7 +317,7 @@
                 </svg>
             </button>
             
-            <button class="like-btn" id="likeBtn" onclick="toggleLikeInPlayer()" title="Добавить в понравившиеся">
+            <button class="like-btn" id="likeBtn" onclick="toggleLike()" title="Добавить в понравившиеся">
                 ♡
             </button>
             
@@ -324,6 +326,13 @@
                     <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
                 </svg>
                 <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.1" value="0.7">
+            </div>
+        </div>
+        
+        <div class="track-additional-info">
+            <div class="current-track-info" id="currentTrackInfo">
+                <span class="now-playing-label">Сейчас играет:</span>
+                <span class="track-full-info" id="trackFullInfo"></span>
             </div>
         </div>
         
@@ -336,7 +345,6 @@
 <script src="/static/js/music.js"></script>
 <script>
 let currentPlayingButton = null;
-let currentCardLikeButton = null;
 
 function playTrackFromCard(button) {
     const card = button.closest('.track-card');
@@ -356,57 +364,12 @@ function playTrackFromCard(button) {
     button.innerHTML = '⏸️';
     button.classList.add('playing');
     
-    // Сохраняем кнопку лайка текущей карточки
-    currentCardLikeButton = card.querySelector('.like-btn-search');
-    
     // Показываем плеер
     const audioPlayer = document.getElementById('audioPlayer');
     audioPlayer.style.display = 'block';
     
     playTrackById(trackId, title, artist, cover);
 }
-
-// Новая функция для лайка в плеере
-async function toggleLikeInPlayer() {
-    await toggleLike();
-    
-    // Синхронизируем с кнопкой на карточке
-    if (currentCardLikeButton) {
-        const likeBtn = document.getElementById('likeBtn');
-        const isLiked = likeBtn.classList.contains('liked');
-        
-        if (isLiked) {
-            currentCardLikeButton.innerHTML = '❤️';
-            currentCardLikeButton.classList.add('liked');
-        } else {
-            currentCardLikeButton.innerHTML = '♡';
-            currentCardLikeButton.classList.remove('liked');
-        }
-    }
-}
-
-// Слушаем изменения лайка в плеере
-function syncLikeWithCard() {
-    if (currentCardLikeButton) {
-        const likeBtn = document.getElementById('likeBtn');
-        const isLiked = likeBtn.classList.contains('liked');
-        
-        if (isLiked) {
-            currentCardLikeButton.innerHTML = '❤️';
-            currentCardLikeButton.classList.add('liked');
-        } else {
-            currentCardLikeButton.innerHTML = '♡';
-            currentCardLikeButton.classList.remove('liked');
-        }
-    }
-}
-
-// Перехватываем вызов checkIfLiked для синхронизации
-const originalCheckIfLiked = checkIfLiked;
-checkIfLiked = async function() {
-    await originalCheckIfLiked();
-    syncLikeWithCard();
-};
 
 // Обновляем кнопку при паузе/воспроизведении
 audioElement.onpause = function() {
@@ -428,7 +391,6 @@ audioElement.onended = function() {
         currentPlayingButton.innerHTML = '▶';
         currentPlayingButton.classList.remove('playing');
         currentPlayingButton = null;
-        currentCardLikeButton = null;
     }
 };
 
@@ -449,7 +411,16 @@ async function toggleLikeFromCard(button) {
     };
     currentTrackId = trackId;
     
-    await toggleLikeInPlayer();
+    await toggleLike();
+    
+    const isLiked = document.getElementById('likeBtn').classList.contains('liked');
+    if (isLiked) {
+        button.innerHTML = '❤️';
+        button.classList.add('liked');
+    } else {
+        button.innerHTML = '♡';
+        button.classList.remove('liked');
+    }
 }
 </script>
 {% endblock %}
