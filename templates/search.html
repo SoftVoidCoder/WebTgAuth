@@ -336,6 +336,108 @@
 
 <script src="/static/js/music.js"></script>
 <script>
-// ВСЯ ЛОГИКА В music.js - НИЧЕГО ЛИШНЕГО
+let currentPlayingButton = null;
+
+function playTrackFromCard(button) {
+    const card = button.closest('.track-card');
+    const trackId = card.dataset.trackId;
+    const title = card.dataset.trackTitle;
+    const artist = card.dataset.trackArtist;
+    const cover = card.dataset.trackCover;
+    
+    // Сбрасываем предыдущую кнопку
+    if (currentPlayingButton && currentPlayingButton !== button) {
+        currentPlayingButton.innerHTML = '▶';
+        currentPlayingButton.classList.remove('playing');
+    }
+    
+    // Обновляем текущую кнопку
+    currentPlayingButton = button;
+    button.innerHTML = '⏸️';
+    button.classList.add('playing');
+    
+    // Показываем плеер
+    const audioPlayer = document.getElementById('audioPlayer');
+    audioPlayer.style.display = 'block';
+    
+    // Воспроизводим трек
+    playTrackById(trackId, title, artist, cover);
+}
+
+// Обновляем кнопку при паузе/воспроизведении
+audioElement.onpause = function() {
+    if (currentPlayingButton) {
+        currentPlayingButton.innerHTML = '▶';
+        currentPlayingButton.classList.remove('playing');
+    }
+};
+
+audioElement.onplay = function() {
+    if (currentPlayingButton) {
+        currentPlayingButton.innerHTML = '⏸️';
+        currentPlayingButton.classList.add('playing');
+    }
+};
+
+audioElement.onended = function() {
+    if (currentPlayingButton) {
+        currentPlayingButton.innerHTML = '▶';
+        currentPlayingButton.classList.remove('playing');
+        currentPlayingButton = null;
+    }
+};
+
+async function toggleLikeFromCard(button) {
+    const card = button.closest('.track-card');
+    const trackId = card.dataset.trackId;
+    const title = card.dataset.trackTitle;
+    const artist = card.dataset.trackArtist;
+    const cover = card.dataset.trackCover;
+    const album = card.dataset.trackAlbum;
+    
+    // Устанавливаем текущий трек
+    currentTrackData = {
+        id: trackId,
+        title: title,
+        artists: artist.split(', '),
+        cover_uri: cover,
+        album: album
+    };
+    currentTrackId = trackId;
+    
+    // Ставим/убираем лайк
+    await toggleLike();
+    
+    // Обновляем кнопку
+    const isLiked = document.getElementById('likeBtn').classList.contains('liked');
+    button.innerHTML = isLiked ? '❤️' : '♡';
+    if (isLiked) {
+        button.classList.add('liked');
+    } else {
+        button.classList.remove('liked');
+    }
+}
+
+// Синхронизация лайков при изменении в плеере
+document.getElementById('likeBtn').addEventListener('click', function() {
+    setTimeout(() => {
+        const isLiked = this.classList.contains('liked');
+        const currentTrackId = window.currentTrackId;
+        
+        // Обновляем все кнопки для текущего трека
+        const allLikeButtons = document.querySelectorAll('.like-btn-search');
+        allLikeButtons.forEach(btn => {
+            const card = btn.closest('.track-card');
+            if (card && card.dataset.trackId === currentTrackId) {
+                btn.innerHTML = isLiked ? '❤️' : '♡';
+                if (isLiked) {
+                    btn.classList.add('liked');
+                } else {
+                    btn.classList.remove('liked');
+                }
+            }
+        });
+    }, 100);
+});
 </script>
 {% endblock %}
