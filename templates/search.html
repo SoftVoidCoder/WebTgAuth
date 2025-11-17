@@ -134,39 +134,11 @@
     }
 
     .play-btn {
-        background: rgba(255,255,255,0.1);
-        border: none;
-        border-radius: 50%;
-        width: 36px;
-        height: 36px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        color: white;
-        transition: all 0.3s ease;
-    }
-
-    .play-btn:hover {
         background: rgba(255,255,255,0.2);
-        transform: scale(1.1);
-    }
-
-    .play-btn.playing {
-        background: rgba(255,255,255,0.2);
-    }
-
-    .play-btn svg {
-        width: 20px;
-        height: 20px;
-    }
-
-    .like-btn-search {
-        background: rgba(255,255,255,0.1);
-        border: none;
+        border: 2px solid rgba(255,255,255,0.3);
         border-radius: 50%;
-        width: 36px;
-        height: 36px;
+        width: 50px;
+        height: 50px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -176,13 +148,38 @@
         transition: all 0.3s ease;
     }
 
-    .like-btn-search:hover {
+    .play-btn:hover {
+        background: rgba(255,255,255,0.3);
+        transform: scale(1.1);
+    }
+
+    .play-btn.playing {
+        background: rgba(255,255,255,0.3);
+    }
+
+    .like-btn-search {
         background: rgba(255,255,255,0.2);
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: white;
+        font-size: 1.3rem;
+        transition: all 0.3s ease;
+    }
+
+    .like-btn-search:hover {
+        background: rgba(255,255,255,0.3);
         transform: scale(1.1);
     }
 
     .like-btn-search.liked {
         color: #fbbf24;
+        border-color: #fbbf24;
     }
 
     .no-results {
@@ -214,7 +211,7 @@
     .current-track-info,
     .now-playing-label,
     .track-full-info {
-        display: none !important;
+        display: block !important;
     }
 </style>
 {% endblock %}
@@ -270,11 +267,7 @@
                 </div>
                 
                 <div class="track-actions">
-                    <button class="play-btn" onclick="playTrackFromCard(this)">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M8 5v14l11-7z"/>
-                        </svg>
-                    </button>
+                    <button class="play-btn" onclick="playTrackFromCard(this)">▶</button>
                     <button class="like-btn-search" onclick="toggleLikeFromCard(this)">♡</button>
                 </div>
             </div>
@@ -334,6 +327,13 @@
             </div>
         </div>
         
+        <div class="track-additional-info">
+            <div class="current-track-info" id="currentTrackInfo">
+                <span class="now-playing-label">Сейчас играет:</span>
+                <span class="track-full-info" id="trackFullInfo"></span>
+            </div>
+        </div>
+        
         <audio class="audio-element" id="audioElement">
             Ваш браузер не поддерживает аудио элементы.
         </audio>
@@ -360,14 +360,14 @@ function playTrackFromCard(button) {
     
     // Сбрасываем предыдущую кнопку
     if (currentPlayingButton && currentPlayingButton !== button) {
-        currentPlayingButton.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+        currentPlayingButton.innerHTML = '▶';
         currentPlayingButton.classList.remove('playing');
     }
     
     // Обновляем текущую кнопку
     currentPlayingButton = button;
     currentPlayingCardId = trackId;
-    button.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+    button.innerHTML = '⏸️';
     button.classList.add('playing');
     
     // Показываем плеер
@@ -420,21 +420,21 @@ document.addEventListener('DOMContentLoaded', function() {
     if (audioElement) {
         audioElement.addEventListener('pause', function() {
             if (currentPlayingButton) {
-                currentPlayingButton.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+                currentPlayingButton.innerHTML = '▶';
                 currentPlayingButton.classList.remove('playing');
             }
         });
         
         audioElement.addEventListener('play', function() {
             if (currentPlayingButton) {
-                currentPlayingButton.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+                currentPlayingButton.innerHTML = '⏸️';
                 currentPlayingButton.classList.add('playing');
             }
         });
         
         audioElement.addEventListener('ended', function() {
             if (currentPlayingButton) {
-                currentPlayingButton.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+                currentPlayingButton.innerHTML = '▶';
                 currentPlayingButton.classList.remove('playing');
                 currentPlayingButton = null;
                 currentPlayingCardId = null;
@@ -453,10 +453,10 @@ window.togglePlayPause = function() {
         const audioElement = document.getElementById('audioElement');
         if (currentPlayingButton && audioElement) {
             if (audioElement.paused) {
-                currentPlayingButton.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+                currentPlayingButton.innerHTML = '▶';
                 currentPlayingButton.classList.remove('playing');
             } else {
-                currentPlayingButton.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+                currentPlayingButton.innerHTML = '⏸️';
                 currentPlayingButton.classList.add('playing');
             }
         }
