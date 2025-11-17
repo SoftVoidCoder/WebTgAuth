@@ -209,11 +209,9 @@
         z-index: 1000;
     }
 
-    .track-additional-info,
-    .current-track-info,
-    .now-playing-label,
-    .track-full-info {
-        display: block !important;
+    /* УБИРАЕМ ЛИШНЮЮ ИНФУ */
+    .track-additional-info {
+        display: none !important;
     }
 </style>
 {% endblock %}
@@ -329,13 +327,6 @@
             </div>
         </div>
         
-        <div class="track-additional-info">
-            <div class="current-track-info" id="currentTrackInfo">
-                <span class="now-playing-label">Сейчас играет:</span>
-                <span class="track-full-info" id="trackFullInfo"></span>
-            </div>
-        </div>
-        
         <audio class="audio-element" id="audioElement">
             Ваш браузер не поддерживает аудио элементы.
         </audio>
@@ -345,6 +336,7 @@
 <script src="/static/js/music.js"></script>
 <script>
 let currentPlayingButton = null;
+let currentCardLikeButton = null;
 
 function playTrackFromCard(button) {
     const card = button.closest('.track-card');
@@ -364,12 +356,45 @@ function playTrackFromCard(button) {
     button.innerHTML = '⏸️';
     button.classList.add('playing');
     
+    // Сохраняем кнопку лайка текущей карточки
+    currentCardLikeButton = card.querySelector('.like-btn-search');
+    
     // Показываем плеер
     const audioPlayer = document.getElementById('audioPlayer');
     audioPlayer.style.display = 'block';
     
     playTrackById(trackId, title, artist, cover);
 }
+
+// Синхронизируем лайки
+function syncLikeButtons() {
+    if (currentCardLikeButton) {
+        const playerLikeBtn = document.getElementById('likeBtn');
+        const isLiked = playerLikeBtn.classList.contains('liked');
+        
+        if (isLiked) {
+            currentCardLikeButton.innerHTML = '❤️';
+            currentCardLikeButton.classList.add('liked');
+        } else {
+            currentCardLikeButton.innerHTML = '♡';
+            currentCardLikeButton.classList.remove('liked');
+        }
+    }
+}
+
+// Перехватываем checkIfLiked для синхронизации
+const originalCheckIfLiked = checkIfLiked;
+checkIfLiked = async function() {
+    await originalCheckIfLiked();
+    syncLikeButtons();
+};
+
+// Перехватываем toggleLike для синхронизации
+const originalToggleLike = toggleLike;
+toggleLike = async function() {
+    await originalToggleLike();
+    syncLikeButtons();
+};
 
 // Обновляем кнопку при паузе/воспроизведении
 audioElement.onpause = function() {
@@ -391,6 +416,7 @@ audioElement.onended = function() {
         currentPlayingButton.innerHTML = '▶';
         currentPlayingButton.classList.remove('playing');
         currentPlayingButton = null;
+        currentCardLikeButton = null;
     }
 };
 
@@ -412,15 +438,6 @@ async function toggleLikeFromCard(button) {
     currentTrackId = trackId;
     
     await toggleLike();
-    
-    const isLiked = document.getElementById('likeBtn').classList.contains('liked');
-    if (isLiked) {
-        button.innerHTML = '❤️';
-        button.classList.add('liked');
-    } else {
-        button.innerHTML = '♡';
-        button.classList.remove('liked');
-    }
 }
 </script>
 {% endblock %}
