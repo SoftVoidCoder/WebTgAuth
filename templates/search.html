@@ -315,7 +315,7 @@
                 </svg>
             </button>
             
-            <button class="like-btn" id="likeBtn" onclick="toggleLike()" title="Добавить в понравившиеся">
+            <button class="like-btn" id="likeBtn" onclick="toggleLikeWithSync()" title="Добавить в понравившиеся">
                 ♡
             </button>
             
@@ -366,7 +366,7 @@ function playTrackFromCard(button) {
     playTrackById(trackId, title, artist, cover);
 }
 
-// Синхронизируем лайки
+// Функция для синхронизации лайков
 function syncLikeButtons() {
     if (currentCardLikeButton) {
         const playerLikeBtn = document.getElementById('likeBtn');
@@ -382,19 +382,14 @@ function syncLikeButtons() {
     }
 }
 
-// Перехватываем checkIfLiked для синхронизации
-const originalCheckIfLiked = checkIfLiked;
-checkIfLiked = async function() {
-    await originalCheckIfLiked();
+// Новая функция для лайка с синхронизацией
+async function toggleLikeWithSync() {
+    await toggleLike();
     syncLikeButtons();
-};
+}
 
-// Перехватываем toggleLike для синхронизации
-const originalToggleLike = toggleLike;
-toggleLike = async function() {
-    await originalToggleLike();
-    syncLikeButtons();
-};
+// Слушаем изменения в плеере для синхронизации
+setInterval(syncLikeButtons, 500);
 
 // Обновляем кнопку при паузе/воспроизведении
 audioElement.onpause = function() {
@@ -437,7 +432,7 @@ async function toggleLikeFromCard(button) {
     };
     currentTrackId = trackId;
     
-    await toggleLike();
+    await toggleLikeWithSync();
 }
 </script>
 {% endblock %}
