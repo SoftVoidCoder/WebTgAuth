@@ -1,5 +1,3 @@
-[file name]: search.html
-[file content begin]
 {% extends "base.html" %}
 
 {% block head %}
@@ -329,6 +327,12 @@
             </div>
         </div>
         
+        <div class="track-additional-info">
+            <div class="current-track-info" id="currentTrackInfo">
+                <span class="now-playing-label">Сейчас играет:</span>
+                <span class="track-full-info" id="trackFullInfo"></span>
+            </div>
+        </div>
         
         <audio class="audio-element" id="audioElement">
             Ваш браузер не поддерживает аудио элементы.
@@ -339,7 +343,6 @@
 <script src="/static/js/music.js"></script>
 <script>
 let currentPlayingButton = null;
-let currentPlayingCardId = null;
 
 function playTrackFromCard(button) {
     const card = button.closest('.track-card');
@@ -347,12 +350,6 @@ function playTrackFromCard(button) {
     const title = card.dataset.trackTitle;
     const artist = card.dataset.trackArtist;
     const cover = card.dataset.trackCover;
-    
-    // Если это тот же трек что уже играет - ставим на паузу/продолжаем
-    if (currentPlayingCardId === trackId) {
-        togglePlayPause();
-        return;
-    }
     
     // Сбрасываем предыдущую кнопку
     if (currentPlayingButton && currentPlayingButton !== button) {
@@ -362,7 +359,6 @@ function playTrackFromCard(button) {
     
     // Обновляем текущую кнопку
     currentPlayingButton = button;
-    currentPlayingCardId = trackId;
     button.innerHTML = '⏸️';
     button.classList.add('playing');
     
@@ -370,93 +366,30 @@ function playTrackFromCard(button) {
     const audioPlayer = document.getElementById('audioPlayer');
     audioPlayer.style.display = 'block';
     
-    // Сохраняем данные трека для синхронизации
-    currentTrackData = {
-        id: trackId,
-        title: title,
-        artists: artist.split(', '),
-        cover_uri: cover,
-        album: card.dataset.trackAlbum
-    };
-    currentTrackId = trackId;
-    
     playTrackById(trackId, title, artist, cover);
 }
 
-// СИНХРОНИЗАЦИЯ ЛАЙКОВ
-function updateAllLikeButtons() {
-    const isLiked = document.getElementById('likeBtn').classList.contains('liked');
-    
-    // Обновляем все кнопки лайков для текущего трека
-    const allLikeButtons = document.querySelectorAll('.like-btn-search');
-    allLikeButtons.forEach(btn => {
-        const card = btn.closest('.track-card');
-        if (card && card.dataset.trackId === currentTrackId) {
-            btn.innerHTML = isLiked ? '❤️' : '♡';
-            if (isLiked) {
-                btn.classList.add('liked');
-            } else {
-                btn.classList.remove('liked');
-            }
-        }
-    });
-}
-
-// Переопределяем toggleLike для синхронизации
-const originalToggleLike = window.toggleLike;
-window.toggleLike = async function() {
-    await originalToggleLike();
-    updateAllLikeButtons();
+// Обновляем кнопку при паузе/воспроизведении
+audioElement.onpause = function() {
+    if (currentPlayingButton) {
+        currentPlayingButton.innerHTML = '▶';
+        currentPlayingButton.classList.remove('playing');
+    }
 };
 
-// СИНХРОНИЗАЦИЯ КНОПКИ ПАУЗЫ
-document.addEventListener('DOMContentLoaded', function() {
-    const audioElement = document.getElementById('audioElement');
-    
-    if (audioElement) {
-        audioElement.addEventListener('pause', function() {
-            if (currentPlayingButton) {
-                currentPlayingButton.innerHTML = '▶';
-                currentPlayingButton.classList.remove('playing');
-            }
-        });
-        
-        audioElement.addEventListener('play', function() {
-            if (currentPlayingButton) {
-                currentPlayingButton.innerHTML = '⏸️';
-                currentPlayingButton.classList.add('playing');
-            }
-        });
-        
-        audioElement.addEventListener('ended', function() {
-            if (currentPlayingButton) {
-                currentPlayingButton.innerHTML = '▶';
-                currentPlayingButton.classList.remove('playing');
-                currentPlayingButton = null;
-                currentPlayingCardId = null;
-            }
-        });
+audioElement.onplay = function() {
+    if (currentPlayingButton) {
+        currentPlayingButton.innerHTML = '⏸️';
+        currentPlayingButton.classList.add('playing');
     }
-});
+};
 
-// Синхронизация при нажатии кнопки паузы в плеере
-const originalTogglePlayPause = window.togglePlayPause;
-window.togglePlayPause = function() {
-    originalTogglePlayPause();
-    
-    // Обновляем кнопку в карточке после небольшой задержки
-    setTimeout(() => {
-        const audioElement = document.getElementById('audioElement');
-        if (currentPlayingButton && audioElement) {
-            if (audioElement.paused) {
-                currentPlayingButton.innerHTML = '▶';
-                currentPlayingButton.classList.remove('playing');
-            } else {
-                currentPlayingButton.innerHTML = '⏸️';
-                currentPlayingButton.classList.add('playing');
-            }
-        }
-    }, 50);
+audioElement.onended = function() {
+    if (currentPlayingButton) {
+        currentPlayingButton.innerHTML = '▶';
+        currentPlayingButton.classList.remove('playing');
+        currentPlayingButton = null;
+    }
 };
 
 async function toggleLikeFromCard(button) {
@@ -477,6 +410,15 @@ async function toggleLikeFromCard(button) {
     currentTrackId = trackId;
     
     await toggleLike();
+    
+    const isLiked = document.getElementById('likeBtn').classList.contains('liked');
+    if (isLiked) {
+        button.innerHTML = '❤️';
+        button.classList.add('liked');
+    } else {
+        button.innerHTML = '♡';
+        button.classList.remove('liked');
+    }
 }
 </script>
 {% endblock %}
