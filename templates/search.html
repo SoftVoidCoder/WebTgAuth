@@ -366,26 +366,6 @@ function playTrackFromCard(button) {
     playTrackById(trackId, title, artist, cover);
 }
 
-// Переопределяем функцию проверки лайка для синхронизации с карточкой
-const originalCheckIfLiked = checkIfLiked;
-checkIfLiked = async function() {
-    await originalCheckIfLiked();
-    
-    // Синхронизируем с кнопкой на карточке
-    if (currentCardLikeButton) {
-        const likeBtn = document.getElementById('likeBtn');
-        const isLiked = likeBtn.classList.contains('liked');
-        
-        if (isLiked) {
-            currentCardLikeButton.innerHTML = '❤️';
-            currentCardLikeButton.classList.add('liked');
-        } else {
-            currentCardLikeButton.innerHTML = '♡';
-            currentCardLikeButton.classList.remove('liked');
-        }
-    }
-};
-
 // Новая функция для лайка в плеере
 async function toggleLikeInPlayer() {
     await toggleLike();
@@ -404,6 +384,29 @@ async function toggleLikeInPlayer() {
         }
     }
 }
+
+// Слушаем изменения лайка в плеере
+function syncLikeWithCard() {
+    if (currentCardLikeButton) {
+        const likeBtn = document.getElementById('likeBtn');
+        const isLiked = likeBtn.classList.contains('liked');
+        
+        if (isLiked) {
+            currentCardLikeButton.innerHTML = '❤️';
+            currentCardLikeButton.classList.add('liked');
+        } else {
+            currentCardLikeButton.innerHTML = '♡';
+            currentCardLikeButton.classList.remove('liked');
+        }
+    }
+}
+
+// Перехватываем вызов checkIfLiked для синхронизации
+const originalCheckIfLiked = checkIfLiked;
+checkIfLiked = async function() {
+    await originalCheckIfLiked();
+    syncLikeWithCard();
+};
 
 // Обновляем кнопку при паузе/воспроизведении
 audioElement.onpause = function() {
