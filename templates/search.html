@@ -57,11 +57,13 @@
                     </p>
                 </div>
                 
-                <div class="track-actions">
-                    <button class="play-btn" onclick="playTrackFromCard(this)">▶</button>
-                    <button class="like-btn-search" onclick="toggleLikeFromCard(this)">♡</button>
-                </div>
-            </div>
+                   <button class="play-btn" onclick="playTrackFromCard(this)">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z"/>
+        </svg>
+    </button>
+    <button class="like-btn-search" onclick="toggleLikeFromCard(this)">♡</button>
+</div>
             {% endfor %}
         </div>
     </section>
@@ -152,7 +154,11 @@ function playTrackFromCard(button) {
     // Обновляем текущую кнопку
     currentPlayingButton = button;
     currentPlayingCardId = trackId;
-    button.innerHTML = '⏸️';
+    button.innerHTML = `
+    <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+    </svg>
+`;
     button.classList.add('playing');
     
     // Показываем плеер
@@ -204,19 +210,26 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (audioElement) {
         audioElement.addEventListener('pause', function() {
-            if (currentPlayingButton) {
-                currentPlayingButton.innerHTML = '▶';
-                currentPlayingButton.classList.remove('playing');
-            }
-        });
-        
+    if (currentPlayingButton) {
+        currentPlayingButton.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z"/>
+            </svg>
+        `;
+        currentPlayingButton.classList.remove('playing');
+    }
+});
+
         audioElement.addEventListener('play', function() {
-            if (currentPlayingButton) {
-                currentPlayingButton.innerHTML = '⏸️';
-                currentPlayingButton.classList.add('playing');
-            }
-        });
-        
+    if (currentPlayingButton) {
+        currentPlayingButton.innerHTML = `
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+            </svg>
+        `;
+        currentPlayingButton.classList.add('playing');
+    }
+});
         audioElement.addEventListener('ended', function() {
             if (currentPlayingButton) {
                 currentPlayingButton.innerHTML = '▶';
