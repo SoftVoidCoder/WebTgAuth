@@ -343,6 +343,7 @@
 <script src="/static/js/music.js"></script>
 <script>
 let currentPlayingButton = null;
+let currentPlayingCardId = null;
 
 function playTrackFromCard(button) {
     const card = button.closest('.track-card');
@@ -350,6 +351,12 @@ function playTrackFromCard(button) {
     const title = card.dataset.trackTitle;
     const artist = card.dataset.trackArtist;
     const cover = card.dataset.trackCover;
+    
+    // Если это тот же трек - ставим на паузу/продолжаем
+    if (currentPlayingCardId === trackId) {
+        togglePlayPause();
+        return;
+    }
     
     // Сбрасываем предыдущую кнопку
     if (currentPlayingButton && currentPlayingButton !== button) {
@@ -359,6 +366,7 @@ function playTrackFromCard(button) {
     
     // Обновляем текущую кнопку
     currentPlayingButton = button;
+    currentPlayingCardId = trackId;
     button.innerHTML = '⏸️';
     button.classList.add('playing');
     
@@ -366,30 +374,93 @@ function playTrackFromCard(button) {
     const audioPlayer = document.getElementById('audioPlayer');
     audioPlayer.style.display = 'block';
     
+    // Сохраняем данные трека
+    currentTrackData = {
+        id: trackId,
+        title: title,
+        artists: artist.split(', '),
+        cover_uri: cover,
+        album: card.dataset.trackAlbum
+    };
+    currentTrackId = trackId;
+    
     playTrackById(trackId, title, artist, cover);
 }
 
-// Обновляем кнопку при паузе/воспроизведении
-audioElement.onpause = function() {
-    if (currentPlayingButton) {
-        currentPlayingButton.innerHTML = '▶';
-        currentPlayingButton.classList.remove('playing');
-    }
+// СИНХРОНИЗАЦИЯ ЛАЙКОВ
+function updateAllLikeButtons() {
+    const isLiked = document.getElementById('likeBtn').classList.contains('liked');
+    
+    // Обновляем все кнопки лайков для текущего трека
+    const allLikeButtons = document.querySelectorAll('.like-btn-search');
+    allLikeButtons.forEach(btn => {
+        const card = btn.closest('.track-card');
+        if (card && card.dataset.trackId === currentTrackId) {
+            btn.innerHTML = isLiked ? '❤️' : '♡';
+            if (isLiked) {
+                btn.classList.add('liked');
+            } else {
+                btn.classList.remove('liked');
+            }
+        }
+    });
+}
+
+// Переопределяем toggleLike для синхронизации
+const originalToggleLike = window.toggleLike;
+window.toggleLike = async function() {
+    await originalToggleLike();
+    updateAllLikeButtons();
 };
 
-audioElement.onplay = function() {
-    if (currentPlayingButton) {
-        currentPlayingButton.innerHTML = '⏸️';
-        currentPlayingButton.classList.add('playing');
+// СИНХРОНИЗАЦИЯ КНОПКИ ПАУЗЫ
+document.addEventListener('DOMContentLoaded', function() {
+    const audioElement = document.getElementById('audioElement');
+    
+    if (audioElement) {
+        audioElement.addEventListener('pause', function() {
+            if (currentPlayingButton) {
+                currentPlayingButton.innerHTML = '▶';
+                currentPlayingButton.classList.remove('playing');
+            }
+        });
+        
+        audioElement.addEventListener('play', function() {
+            if (currentPlayingButton) {
+                currentPlayingButton.innerHTML = '⏸️';
+                currentPlayingButton.classList.add('playing');
+            }
+        });
+        
+        audioElement.addEventListener('ended', function() {
+            if (currentPlayingButton) {
+                currentPlayingButton.innerHTML = '▶';
+                currentPlayingButton.classList.remove('playing');
+                currentPlayingButton = null;
+                currentPlayingCardId = null;
+            }
+        });
     }
-};
+});
 
-audioElement.onended = function() {
-    if (currentPlayingButton) {
-        currentPlayingButton.innerHTML = '▶';
-        currentPlayingButton.classList.remove('playing');
-        currentPlayingButton = null;
-    }
+// Синхронизация при нажатии кнопки паузы в плеере
+const originalTogglePlayPause = window.togglePlayPause;
+window.togglePlayPause = function() {
+    originalTogglePlayPause();
+    
+    // Обновляем кнопку в карточке
+    setTimeout(() => {
+        const audioElement = document.getElementById('audioElement');
+        if (currentPlayingButton && audioElement) {
+            if (audioElement.paused) {
+                currentPlayingButton.innerHTML = '▶';
+                currentPlayingButton.classList.remove('playing');
+            } else {
+                currentPlayingButton.innerHTML = '⏸️';
+                currentPlayingButton.classList.add('playing');
+            }
+        }
+    }, 50);
 };
 
 async function toggleLikeFromCard(button) {
@@ -410,15 +481,6 @@ async function toggleLikeFromCard(button) {
     currentTrackId = trackId;
     
     await toggleLike();
-    
-    const isLiked = document.getElementById('likeBtn').classList.contains('liked');
-    if (isLiked) {
-        button.innerHTML = '❤️';
-        button.classList.add('liked');
-    } else {
-        button.innerHTML = '♡';
-        button.classList.remove('liked');
-    }
 }
 </script>
 {% endblock %}
