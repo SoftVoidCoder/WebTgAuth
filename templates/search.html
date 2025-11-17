@@ -1,3 +1,5 @@
+[file name]: search.html
+[file content begin]
 {% extends "base.html" %}
 
 {% block head %}
@@ -207,12 +209,11 @@
         z-index: 1000;
     }
 
-    /* УБИРАЕМ ЛИШНЮЮ ИНФУ В ПЛЕЕРЕ */
     .track-additional-info,
     .current-track-info,
     .now-playing-label,
     .track-full-info {
-        display: none !important;
+        display: block !important;
     }
 </style>
 {% endblock %}
@@ -328,7 +329,12 @@
             </div>
         </div>
         
-        <!-- УБРАЛ ЛИШНЮЮ ИНФУ -->
+        <div class="track-additional-info">
+            <div class="current-track-info" id="currentTrackInfo">
+                <span class="now-playing-label">Сейчас играет:</span>
+                <span class="track-full-info" id="trackFullInfo"></span>
+            </div>
+        </div>
         
         <audio class="audio-element" id="audioElement">
             Ваш браузер не поддерживает аудио элементы.
@@ -339,7 +345,6 @@
 <script src="/static/js/music.js"></script>
 <script>
 let currentPlayingButton = null;
-let currentLikedButtons = new Map(); // Храним все кнопки лайков для текущего трека
 
 function playTrackFromCard(button) {
     const card = button.closest('.track-card');
@@ -408,53 +413,15 @@ async function toggleLikeFromCard(button) {
     
     await toggleLike();
     
-    // Обновляем все кнопки лайков для этого трека
-    updateAllLikeButtons();
-}
-
-// Функция для обновления всех кнопок лайков
-function updateAllLikeButtons() {
     const isLiked = document.getElementById('likeBtn').classList.contains('liked');
-    
-    // Обновляем кнопку в плеере
-    const playerLikeBtn = document.getElementById('likeBtn');
-    if (playerLikeBtn) {
-        playerLikeBtn.innerHTML = isLiked ? '❤️' : '♡';
-        if (isLiked) {
-            playerLikeBtn.classList.add('liked');
-        } else {
-            playerLikeBtn.classList.remove('liked');
-        }
+    if (isLiked) {
+        button.innerHTML = '❤️';
+        button.classList.add('liked');
+    } else {
+        button.innerHTML = '♡';
+        button.classList.remove('liked');
     }
-    
-    // Обновляем все кнопки в карточках для текущего трека
-    const allLikeButtons = document.querySelectorAll('.like-btn-search');
-    allLikeButtons.forEach(btn => {
-        const card = btn.closest('.track-card');
-        if (card && card.dataset.trackId === currentTrackId) {
-            btn.innerHTML = isLiked ? '❤️' : '♡';
-            if (isLiked) {
-                btn.classList.add('liked');
-            } else {
-                btn.classList.remove('liked');
-            }
-        }
-    });
 }
-
-// Переопределяем функцию toggleLike из music.js для синхронизации
-const originalToggleLike = window.toggleLike;
-window.toggleLike = async function() {
-    await originalToggleLike();
-    updateAllLikeButtons();
-};
-
-// Проверяем лайк при загрузке страницы и при смене трека
-const originalPlayTrackById = window.playTrackById;
-window.playTrackById = async function(trackId, title, artist, coverUri, trackData = null) {
-    await originalPlayTrackById(trackId, title, artist, coverUri, trackData);
-    // После загрузки трека обновляем кнопки лайков
-    setTimeout(updateAllLikeButtons, 100);
-};
 </script>
 {% endblock %}
+[file content end]
