@@ -716,3 +716,41 @@ document.addEventListener('keydown', function(e) {
         toggleLike();
     }
 });
+
+window.updateAllLikeButtons = function() {
+    const isLiked = document.getElementById('likeBtn').classList.contains('liked');
+    
+    // Обновляем кнопку в плеере
+    const playerLikeBtn = document.getElementById('likeBtn');
+    if (playerLikeBtn) {
+        playerLikeBtn.innerHTML = isLiked ? '❤️' : '♡';
+        if (isLiked) {
+            playerLikeBtn.classList.add('liked');
+        } else {
+            playerLikeBtn.classList.remove('liked');
+        }
+    }
+    
+    // Обновляем все кнопки в карточках для текущего трека
+    if (window.currentTrackId) {
+        const allLikeButtons = document.querySelectorAll('.like-btn-search');
+        allLikeButtons.forEach(btn => {
+            const card = btn.closest('.track-card');
+            if (card && card.dataset.trackId === window.currentTrackId) {
+                btn.innerHTML = isLiked ? '❤️' : '♡';
+                if (isLiked) {
+                    btn.classList.add('liked');
+                } else {
+                    btn.classList.remove('liked');
+                }
+            }
+        });
+    }
+};
+
+// Обновляем кнопки при проверке лайка
+const originalCheckIfLiked = window.checkIfLiked;
+window.checkIfLiked = async function() {
+    await originalCheckIfLiked();
+    window.updateAllLikeButtons();
+};
