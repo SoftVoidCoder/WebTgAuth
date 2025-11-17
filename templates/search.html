@@ -1,10 +1,35 @@
-[file name]: search.html
-[file content begin]
 {% extends "base.html" %}
 
 {% block head %}
 <link rel="stylesheet" href="/static/css/music.css">
 <link rel="stylesheet" href="/static/css/search.css">
+<style>
+    /* ПЛЕЕР СКРЫТ ПО УМОЛЧАНИЮ */
+    .audio-player {
+        display: none;
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 95%;
+        max-width: 400px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border-radius: 15px;
+        padding: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        z-index: 1000;
+    }
+
+    /* УБИРАЕМ ЛИШНЮЮ ИНФУ В ПЛЕЕРЕ */
+    .track-additional-info,
+    .current-track-info,
+    .now-playing-label,
+    .track-full-info {
+        display: none !important;
+    }
+</style>
 {% endblock %}
 
 {% block title %}Поиск музыки{% endblock %}
@@ -57,13 +82,15 @@
                     </p>
                 </div>
                 
-                   <button class="play-btn" onclick="playTrackFromCard(this)">
-        <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M8 5v14l11-7z"/>
-        </svg>
-    </button>
-    <button class="like-btn-search" onclick="toggleLikeFromCard(this)">♡</button>
-</div>
+                <div class="track-actions">
+                    <button class="play-btn" onclick="playTrackFromCard(this)">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                    </button>
+                    <button class="like-btn-search" onclick="toggleLikeFromCard(this)">♡</button>
+                </div>
+            </div>
             {% endfor %}
         </div>
     </section>
@@ -120,7 +147,6 @@
             </div>
         </div>
         
-        
         <audio class="audio-element" id="audioElement">
             Ваш браузер не поддерживает аудио элементы.
         </audio>
@@ -130,7 +156,6 @@
 <script src="/static/js/music.js"></script>
 <script>
 let currentPlayingButton = null;
-let currentPlayingCardId = null;
 
 function playTrackFromCard(button) {
     const card = button.closest('.track-card');
@@ -139,26 +164,15 @@ function playTrackFromCard(button) {
     const artist = card.dataset.trackArtist;
     const cover = card.dataset.trackCover;
     
-    // Если это тот же трек что уже играет - ставим на паузу/продолжаем
-    if (currentPlayingCardId === trackId) {
-        togglePlayPause();
-        return;
-    }
-    
     // Сбрасываем предыдущую кнопку
     if (currentPlayingButton && currentPlayingButton !== button) {
-        currentPlayingButton.innerHTML = '▶';
+        currentPlayingButton.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
         currentPlayingButton.classList.remove('playing');
     }
     
     // Обновляем текущую кнопку
     currentPlayingButton = button;
-    currentPlayingCardId = trackId;
-    button.innerHTML = `
-    <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
-    </svg>
-`;
+    button.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
     button.classList.add('playing');
     
     // Показываем плеер
@@ -210,56 +224,28 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (audioElement) {
         audioElement.addEventListener('pause', function() {
-    if (currentPlayingButton) {
-        currentPlayingButton.innerHTML = `
-            <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M8 5v14l11-7z"/>
-            </svg>
-        `;
-        currentPlayingButton.classList.remove('playing');
-    }
-});
-
+            if (currentPlayingButton) {
+                currentPlayingButton.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+                currentPlayingButton.classList.remove('playing');
+            }
+        });
+        
         audioElement.addEventListener('play', function() {
-    if (currentPlayingButton) {
-        currentPlayingButton.innerHTML = `
-            <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
-            </svg>
-        `;
-        currentPlayingButton.classList.add('playing');
-    }
-});
+            if (currentPlayingButton) {
+                currentPlayingButton.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+                currentPlayingButton.classList.add('playing');
+            }
+        });
+        
         audioElement.addEventListener('ended', function() {
             if (currentPlayingButton) {
-                currentPlayingButton.innerHTML = '▶';
+                currentPlayingButton.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
                 currentPlayingButton.classList.remove('playing');
                 currentPlayingButton = null;
-                currentPlayingCardId = null;
             }
         });
     }
 });
-
-// Синхронизация при нажатии кнопки паузы в плеере
-const originalTogglePlayPause = window.togglePlayPause;
-window.togglePlayPause = function() {
-    originalTogglePlayPause();
-    
-    // Обновляем кнопку в карточке после небольшой задержки
-    setTimeout(() => {
-        const audioElement = document.getElementById('audioElement');
-        if (currentPlayingButton && audioElement) {
-            if (audioElement.paused) {
-                currentPlayingButton.innerHTML = '▶';
-                currentPlayingButton.classList.remove('playing');
-            } else {
-                currentPlayingButton.innerHTML = '⏸️';
-                currentPlayingButton.classList.add('playing');
-            }
-        }
-    }, 50);
-};
 
 async function toggleLikeFromCard(button) {
     const card = button.closest('.track-card');
