@@ -12,6 +12,12 @@ from app import models
 from app.dependencies import get_current_user
 from app.routers import auth, users, music
 
+# Получаем токен из переменных окружения
+YANDEX_MUSIC_TOKEN = os.getenv("YANDEX_MUSIC_TOKEN")
+
+if not YANDEX_MUSIC_TOKEN:
+    raise ValueError("❌ YANDEX_MUSIC_TOKEN не установлен в переменных окружения")
+
 # СОЗДАЕМ ТАБЛИЦЫ БЕЗ УДАЛЕНИЯ ДАННЫХ
 print("🔄 Создаем таблицы БД...")
 models.Base.metadata.create_all(bind=engine)
@@ -37,7 +43,6 @@ app.include_router(users.router)
 app.include_router(music.router)
 
 # Яндекс.Музыка клиент
-YANDEX_MUSIC_TOKEN = "y0__xCq06KNAxje-AYgtsC_khWI-0_xZL5Ctrii1vxK_bVg6w2MHA"
 try:
     yandex_client = Client(YANDEX_MUSIC_TOKEN).init()
     print("✅ Яндекс.Музыка клиент успешно инициализирован")
